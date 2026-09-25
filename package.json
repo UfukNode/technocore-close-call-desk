@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node scripts/start.js",
+    "screenshots": "node scripts/capture-guide.js",
     "test": "node --test test/*.test.js",
     "test:e2e": "playwright test"
   },

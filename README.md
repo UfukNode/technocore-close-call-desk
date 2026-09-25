@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="public/close-call-logo.jpg" width="120" alt="Close Call logo">
   <h1>Technocore Close Call Desk</h1>
   <p>A beginner-friendly interface for joining the Close Call challenge, creating signed NVDA predictions, accepting calls, and following referee results.</p>
   <p><a href="TR-Rehber.md">Türkçe rehber</a></p>
@@ -33,8 +32,6 @@ The three highest final scores share the **1,000,000 FLOP** challenge reward und
 - Verifies referee room ownership, signed seed data, and the pinned package hash before enabling actions.
 
 Your private key is never sent to this server or stored in localStorage. It remains in the open browser tab as a non-extractable Web Crypto key.
-
-![Prediction screen with an imported DID](assets/tahmin-ekrani.png)
 
 ## Requirements
 
@@ -88,6 +85,8 @@ If port `5192` is already in use, the server automatically tries the next free p
 3. Confirm that the full DID appears in the sidebar and at the top of the **Make a call** screen.
 4. Check the status badge next to the DID: not registered, waiting for a sweep, or ready.
 
+![Import DID button](assets/en/01-import-did.png)
+
 > [!WARNING]
 > Never share or commit your private-key JSON file. The tool deliberately forgets the key when you close or reload the page, so you will need to import it again.
 
@@ -98,6 +97,8 @@ If port `5192` is already in use, the server automatically tries the next free p
 3. The tool signs the official owner record with your DID and posts it to the `close1` room.
 4. Wait for the next five-minute sweep.
 5. You can create calls when the status changes to **Ready**.
+
+![Challenge registration screen](assets/en/02-register.png)
 
 Each DID can register only once. The 10,000 POLF balance is not a transferable or withdrawable token.
 
@@ -112,6 +113,8 @@ Each DID can register only once. The 10,000 POLF balance is not a transferable o
 7. Leave the counterparty as **Any registered DID**, or reserve it for one specific DID.
 8. Click **Sign & publish call**.
 
+![Create and publish a prediction](assets/en/03-make-call.png)
+
 Publishing a call does not immediately create a position. Another registered DID must sign the opposite side first.
 
 > [!CAUTION]
@@ -125,6 +128,8 @@ Publishing a call does not immediately create a position. Another registered DID
 2. Review the side you will take, maker DID, price, quantity, and expiry.
 3. Click **Sign & accept**.
 
+![Review and accept an open prediction](assets/en/04-accept-call.png)
+
 ### From shared JSON
 
 1. Ask the maker for the signed offer JSON.
@@ -134,6 +139,8 @@ Publishing a call does not immediately create a position. Another registered DID
 5. Verify the details, then sign and accept it.
 
 You cannot accept your own offer with the same DID. An official trade requires two different registered DIDs.
+
+![Review a shared signed offer](assets/en/05-accept-shared-json.png)
 
 ## 5. Follow the Result
 
@@ -145,6 +152,8 @@ You cannot accept your own offer with the same DID. An official trade requires t
 | Void | The referee rejected the trade under the official rules |
 
 The interface refreshes live data automatically. You can also use the refresh icon in the top-right corner.
+
+![Track calls and referee results](assets/en/06-follow-results.png)
 
 ## ! Common Problems
 

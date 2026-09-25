@@ -35,8 +35,6 @@ Bu arayüz teknik JSON ve imza işlemlerini sizin yerinize hazırlar:
 
 Private key sunucuya gönderilmez. Dosya yalnızca açık olan tarayıcı sekmesinin belleğinde kullanılır.
 
-![DID bağlı tahmin ekranı](assets/tahmin-ekrani.png)
-
 ## Gereksinimler
 
 | Gereksinim | Açıklama |
@@ -93,6 +91,8 @@ Uygulamayı durdurmak için terminalde `Ctrl + C` tuşlarına basın.
 3. Bağlanan tam DID hem sol menüde hem de **Tahmin yap** ekranının üstünde görünür.
 4. DID'in durumunu aynı alanda kontrol edin: kayıtlı değil, sweep bekliyor veya hazır.
 
+![DID içe aktar düğmesi](assets/tr/01-import-did.png)
+
 > [!WARNING]
 > Private-key JSON dosyanızı kimseyle paylaşmayın ve GitHub'a yüklemeyin. Araç anahtarı localStorage'a veya sunucu diskine kaydetmez; sayfayı kapattığınızda yeniden içe aktarmanız gerekir.
 
@@ -103,6 +103,8 @@ Uygulamayı durdurmak için terminalde `Ctrl + C` tuşlarına basın.
 3. Araç DID'inizle resmî owner kaydını imzalar ve `close1` odasına yollar.
 4. Kayıt hemen tamamlanmış görünmeyebilir. Sonraki beş dakikalık sweep'i bekleyin.
 5. Durum **Hazır** olduğunda tahmin oluşturabilirsiniz.
+
+![Yarışmaya kayıt ekranı](assets/tr/02-register.png)
 
 Aynı DID yalnızca bir kez kaydolur. `10.000 POLF` gerçek token veya çekilebilir bakiye değildir.
 
@@ -116,6 +118,8 @@ Aynı DID yalnızca bir kez kaydolur. `10.000 POLF` gerçek token veya çekilebi
 6. Teklifin kaç sweep açık kalacağını seçin.
 7. Herkesin kabul etmesini istiyorsanız **Herhangi bir kayıtlı DID** seçeneğini bırakın.
 8. **İmzala ve tahmini yayımla** düğmesine basın.
+
+![Tahmin oluşturma ve yayımlama ekranı](assets/tr/03-make-call.png)
 
 Oluşturduğunuz tahmin önce imzalı bir tekliftir. Başka bir DID karşı tarafı imzalamadan açık pozisyon sayılmaz.
 
@@ -131,6 +135,8 @@ Oluşturduğunuz tahmin önce imzalı bir tekliftir. Başka bir DID karşı tara
 3. Tahmini açan DID, fiyat, miktar ve süreyi inceleyin.
 4. **İmzala ve kabul et** düğmesine basın.
 
+![Açık tahmini inceleme ve kabul etme ekranı](assets/tr/04-accept-call.png)
+
 ### Paylaşılan JSON ile
 
 1. Tahmini oluşturan kişiden imzalı offer JSON'ını alın.
@@ -140,6 +146,8 @@ Oluşturduğunuz tahmin önce imzalı bir tekliftir. Başka bir DID karşı tara
 5. Bilgiler doğruysa imzalayıp kabul edin.
 
 Kendi tahmininizi aynı DID ile kabul edemezsiniz. İşlem için iki farklı, kayıtlı DID gerekir.
+
+![Paylaşılan imzalı tahmini inceleme ekranı](assets/tr/05-accept-shared-json.png)
 
 ## 7. Sonucu Takip Edin
 
@@ -153,6 +161,8 @@ Kendi tahmininizi aynı DID ile kabul edemezsiniz. İşlem için iki farklı, ka
 | Geçersiz | Referee işlemi kurallara uygun bulmadı |
 
 Sayfa canlı verileri düzenli olarak yeniler. İsterseniz sağ üstteki yenileme simgesine de basabilirsiniz.
+
+![Tahminleri ve referee sonuçlarını takip etme ekranı](assets/tr/06-follow-results.png)
 
 ## ! Sık Karşılaşılan Sorunlar
 
