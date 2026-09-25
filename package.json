@@ -1,0 +1,21 @@
+{
+  "name": "technocore-close-call-desk",
+  "version": "1.0.0",
+  "description": "Bilingual community trading desk for the FLOP Technocore Close Call challenge.",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "start": "node scripts/start.js",
+    "test": "node --test test/*.test.js",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "lucide": "^0.468.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

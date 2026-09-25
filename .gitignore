@@ -1,0 +1,10 @@
+node_modules/
+test-results/
+playwright-report/
+.DS_Store
+.env
+.env.*
+!.env.example
+keys/
+*.private-key.json
+*-private-key.json

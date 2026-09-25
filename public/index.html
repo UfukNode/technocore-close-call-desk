@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Community trading desk for the FLOP Technocore Close Call challenge.">
+    <title>Close Call Desk</title>
+    <link rel="icon" href="/close-call-logo.jpg">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <img class="brand-mark" src="/close-call-logo.jpg" alt="Close Call logo">
+          <div><strong>Close Call</strong><small data-i18n="community">UfukNode community tool</small></div>
+        </div>
+
+        <nav class="nav-list" aria-label="Primary navigation">
+          <button class="nav-item active" type="button" data-view-target="market"><i data-lucide="chart-candlestick"></i><span data-i18n="market">Market</span></button>
+          <button class="nav-item" type="button" data-view-target="predict"><i data-lucide="crosshair"></i><span data-i18n="predict">Make a call</span></button>
+          <button class="nav-item" type="button" data-view-target="desk"><i data-lucide="briefcase-business"></i><span data-i18n="desk">My desk</span></button>
+          <button class="nav-item" type="button" data-view-target="rules"><i data-lucide="book-open-check"></i><span data-i18n="rules">Rules</span></button>
+        </nav>
+
+        <div class="identity-block">
+          <div class="identity-heading"><span data-i18n="identity">Identity</span><span id="identityDot" class="dot"></span></div>
+          <strong id="identityName" data-i18n="notConnected">DID not connected</strong>
+          <code id="identityDid">-</code>
+          <label class="button secondary file-button" for="keyFile"><i data-lucide="key-round"></i><span data-i18n="importDid">Import DID</span></label>
+          <input id="keyFile" type="file" accept="application/json,.json" hidden>
+          <button id="forgetButton" class="text-button hidden" type="button" data-i18n="forget">Forget key</button>
+          <small data-i18n="keyLocal">Private key stays in this tab.</small>
+        </div>
+
+        <div class="source-links">
+          <a href="https://github.com/flop-labs/technocore-close-call-challenge" target="_blank" rel="noreferrer"><i data-lucide="github"></i><span data-i18n="officialRepo">Official rules</span></a>
+          <a href="https://technocore.chat/r/close1" target="_blank" rel="noreferrer"><i data-lucide="messages-square"></i><span>close1</span></a>
+        </div>
+      </aside>
+
+      <div class="main-column">
+        <header class="topbar">
+          <button id="mobileMenu" class="icon-button mobile-only" type="button" aria-label="Menu"><i data-lucide="menu"></i></button>
+          <div class="live-cluster">
+            <span id="launchBadge" class="status-badge pending"><span class="pulse"></span><span data-i18n="verifying">Verifying referee</span></span>
+            <span class="separator"></span>
+            <span><span data-i18n="sweep">Sweep</span> <strong id="sweepNumber">-</strong></span>
+            <span id="sweepCountdown" class="mono">--:--</span>
+          </div>
+          <div class="top-actions">
+            <span id="lastUpdated" class="quiet">-</span>
+            <div class="language-switch" aria-label="Language">
+              <button class="active" type="button" data-language="tr">TR</button>
+              <button type="button" data-language="en">EN</button>
+            </div>
+            <button id="refreshButton" class="icon-button" type="button" title="Refresh" aria-label="Refresh"><i data-lucide="refresh-cw"></i></button>
+          </div>
+        </header>
+
+        <main>
+          <section class="view active" data-view="market">
+            <div class="page-heading">
+              <div><span class="eyebrow">xyz:NVDA / POLF</span><h1 data-i18n="liveMarket">Live market</h1></div>
+              <button class="primary" type="button" data-go="predict"><i data-lucide="plus"></i><span data-i18n="newCall">New call</span></button>
+            </div>
+
+            <section class="ticker-band" aria-label="Live market metrics">
+              <div class="ticker-primary"><span data-i18n="reference">Reference</span><strong id="referencePrice">-</strong><small id="priceAge">-</small></div>
+              <div><span data-i18n="allowedRange">Allowed range</span><strong id="priceLimits">-</strong></div>
+              <div><span data-i18n="globalPrice">Global price</span><strong id="globalPrice">-</strong></div>
+              <div><span data-i18n="openInterest">Open interest</span><strong id="openInterest">-</strong></div>
+              <div><span data-i18n="owners">Owners</span><strong id="ownerCount">-</strong></div>
+            </section>
+
+            <div id="launchWarning" class="warning-band hidden"><i data-lucide="shield-alert"></i><div><strong data-i18n="actionsLocked">Actions locked</strong><span data-i18n="launchWarning">The signed seed, package hash, and referee rooms could not be verified.</span></div></div>
+
+            <div class="market-layout">
+              <section class="market-panel">
+                <div class="section-heading">
+                  <div><h2 data-i18n="openOffers">Open calls</h2><span id="offerSummary" class="quiet">0</span></div>
+                  <div class="filter-tabs" role="tablist">
+                    <button class="active" type="button" data-offer-filter="all" data-i18n="all">All</button>
+                    <button type="button" data-offer-filter="long" data-i18n="long">Long</button>
+                    <button type="button" data-offer-filter="short" data-i18n="short">Short</button>
+                  </div>
+                </div>
+                <div class="market-columns market-labels"><span data-i18n="makerCall">Maker call</span><span data-i18n="price">Price</span><span data-i18n="size">Size</span><span data-i18n="expires">Expires</span><span></span></div>
+                <div id="offerList" class="offer-list"></div>
+              </section>
+
+              <aside class="referee-panel">
+                <div class="section-heading"><div><h2 data-i18n="refereeFeed">Referee feed</h2><span class="quiet" data-i18n="signedOnly">Verified posts only</span></div></div>
+                <div class="referee-price"><span data-i18n="nextLimits">Next sweep limits</span><strong id="nextLimits">-</strong></div>
+                <dl class="metrics-list">
+                  <div><dt data-i18n="longAccounts">Long accounts</dt><dd id="longAccounts">-</dd></div>
+                  <div><dt data-i18n="shortAccounts">Short accounts</dt><dd id="shortAccounts">-</dd></div>
+                  <div><dt data-i18n="settledLast">Settled last sweep</dt><dd id="settledLast">-</dd></div>
+                  <div><dt data-i18n="voidLast">Void last sweep</dt><dd id="voidLast">-</dd></div>
+                </dl>
+                <div class="leaderboard-heading"><span data-i18n="liveBoard">Live board</span><span data-i18n="score">Score</span></div>
+                <div id="leaderboard" class="leaderboard"></div>
+              </aside>
+            </div>
+
+            <section class="tape-panel">
+              <div class="section-heading"><div><h2 data-i18n="tradeTape">Trade tape</h2><span class="quiet" data-i18n="officialTrades">Countersigned official trades</span></div></div>
+              <div id="tradeTape" class="trade-tape"></div>
+            </section>
+          </section>
+
+          <section class="view" data-view="predict">
+            <div class="page-heading"><div><span class="eyebrow" data-i18n="oneBet">ONE NVDA FUTURE</span><h1 data-i18n="makeCallTitle">Make your call</h1></div><span id="eligibilityBadge" class="status-badge neutral" data-i18n="connectFirst">Connect DID first</span></div>
+            <div class="trade-layout">
+              <section class="ticket-panel">
+                <div class="signer-bar">
+                  <img src="/close-call-logo.jpg" alt="" aria-hidden="true">
+                  <div class="signer-copy"><span data-i18n="signingDid">Signing DID</span><strong id="predictSignerName" data-i18n="notConnected">DID not connected</strong><code id="predictSignerDid">-</code></div>
+                  <span id="predictSignerBadge" class="status-badge neutral" data-i18n="connectFirst">Connect DID first</span>
+                </div>
+                <div class="direction-control" role="radiogroup" aria-label="Direction">
+                  <button class="active long" type="button" data-side="buy"><i data-lucide="trending-up"></i><span><strong data-i18n="nvdaUp">NVDA goes up</strong><small data-i18n="openLong">Open long</small></span></button>
+                  <button class="short" type="button" data-side="sell"><i data-lucide="trending-down"></i><span><strong data-i18n="nvdaDown">NVDA goes down</strong><small data-i18n="openShort">Open short</small></span></button>
+                </div>
+                <div class="form-grid">
+                  <label class="field"><span data-i18n="limitPrice">Trade price</span><div class="input-affix"><input id="offerPrice" type="number" min="0.01" step="0.01"><b>POLF</b></div><small id="priceHelp">-</small></label>
+                  <label class="field"><span data-i18n="quantity">Quantity</span><div class="input-affix"><input id="offerQty" type="number" min="0.1" step="0.01" value="1"><b>NVDA</b></div><small data-i18n="minimumQty">Minimum 0.10</small></label>
+                  <label class="field"><span data-i18n="offerDuration">Offer duration</span><select id="offerDuration"><option value="3">15 min</option><option value="6" selected>30 min</option><option value="12">60 min</option></select><small id="expiryHelp">-</small></label>
+                  <label class="field"><span data-i18n="counterparty">Counterparty</span><select id="takerMode"><option value="any" data-i18n="anyDid">Any registered DID</option><option value="specific" data-i18n="specificDid">Specific DID</option></select><small data-i18n="makerWaits">The trade starts only after a taker signs.</small></label>
+                  <label id="specificTakerField" class="field full hidden"><span data-i18n="takerDid">Taker DID</span><input id="specificTaker" type="text" autocomplete="off" spellcheck="false" placeholder="did:key:z6Mk..."></label>
+                </div>
+
+                <div class="order-preview">
+                  <div><span data-i18n="collateral">Maximum tied collateral</span><strong id="collateralPreview">-</strong></div>
+                  <div><span data-i18n="baseFee">Base fee per side</span><strong id="feePreview">-</strong></div>
+                  <div><span data-i18n="makerSide">Your side</span><strong id="sidePreview" class="positive">LONG</strong></div>
+                </div>
+                <button id="publishOfferButton" class="primary wide" type="button" disabled><i data-lucide="radio-tower"></i><span data-i18n="publishOffer">Sign & publish call</span></button>
+                <p class="risk-note"><i data-lucide="triangle-alert"></i><span data-i18n="irrevocable">A signed open offer cannot be revoked in the official protocol. Use a short expiry.</span></p>
+              </section>
+
+              <aside class="price-guard">
+                <div class="guard-head"><i data-lucide="shield-check"></i><div><strong data-i18n="priceGuard">Price guard</strong><span data-i18n="protocolLimit">Official ±5% limit</span></div></div>
+                <div class="range-track"><span id="rangeFill"></span><i id="rangeMarker"></i></div>
+                <div class="range-values"><span id="rangeLow">-</span><strong id="rangeCurrent">-</strong><span id="rangeHigh">-</span></div>
+                <div class="plain-rule"><span>1</span><p data-i18n="ruleMaker">You sign a price and direction.</p></div>
+                <div class="plain-rule"><span>2</span><p data-i18n="ruleTaker">Another DID signs the opposite side.</p></div>
+                <div class="plain-rule"><span>3</span><p data-i18n="ruleReferee">The referee settles both sides at the next sweep.</p></div>
+              </aside>
+            </div>
+          </section>
+
+          <section class="view" data-view="desk">
+            <div class="page-heading"><div><span class="eyebrow" data-i18n="account">ACCOUNT</span><h1 data-i18n="myDeskTitle">My Close Call desk</h1></div><button id="registerButton" class="primary" type="button" disabled><i data-lucide="badge-check"></i><span data-i18n="register">Register & mint 10,000 POLF</span></button></div>
+            <section class="account-strip">
+              <div><span data-i18n="registration">Registration</span><strong id="registrationStatus">-</strong></div>
+              <div><span data-i18n="startingBalance">Starting balance</span><strong>10,000 POLF</strong></div>
+              <div><span data-i18n="myPosition">Public position</span><strong id="myPosition">-</strong></div>
+              <div><span data-i18n="myScore">Public score</span><strong id="myScore">-</strong></div>
+            </section>
+            <div class="desk-layout">
+              <section class="market-panel">
+                <div class="section-heading"><div><h2 data-i18n="myCalls">My calls</h2><span class="quiet" data-i18n="fromPublicRoom">From public room</span></div></div>
+                <div id="myOffers" class="desk-list"></div>
+              </section>
+              <section class="market-panel">
+                <div class="section-heading"><div><h2 data-i18n="myTrades">My trades</h2><span class="quiet" data-i18n="refereeStatus">Referee status</span></div></div>
+                <div id="myTrades" class="desk-list"></div>
+              </section>
+            </div>
+            <section class="import-panel">
+              <div><h2 data-i18n="acceptShared">Accept a shared call</h2><p data-i18n="pasteOffer">Paste the signed offer JSON from another player.</p></div>
+              <textarea id="offerPaste" rows="4" spellcheck="false" placeholder='{"t":"close-call.offer.v1",...}'></textarea>
+              <button id="reviewOfferButton" class="secondary" type="button"><i data-lucide="scan-search"></i><span data-i18n="review">Review offer</span></button>
+            </section>
+          </section>
+
+          <section class="view" data-view="rules">
+            <div class="page-heading"><div><span class="eyebrow">CLOSE-1</span><h1 data-i18n="rulesTitle">Rules, without the noise</h1></div><a class="button secondary" href="https://github.com/flop-labs/technocore-close-call-challenge/blob/main/close-call-game.md" target="_blank" rel="noreferrer"><i data-lucide="external-link"></i><span data-i18n="canonicalRules">Canonical rules</span></a></div>
+            <div class="rules-grid">
+              <article><span>01</span><h2 data-i18n="rule1Title">Everyone starts equal</h2><p data-i18n="rule1Text">Each DID receives 10,000 POLF once. POLF is contest accounting, not a wallet token.</p></article>
+              <article><span>02</span><h2 data-i18n="rule2Title">A call needs two signatures</h2><p data-i18n="rule2Text">A long only exists when another registered DID accepts the short side, or vice versa.</p></article>
+              <article><span>03</span><h2 data-i18n="rule3Title">Five-minute sweeps</h2><p data-i18n="rule3Text">Nothing is final until the referee lists the trade as settled. Prices must stay inside the posted ±5% range.</p></article>
+              <article><span>04</span><h2 data-i18n="rule4Title">No leverage</h2><p data-i18n="rule4Text">The full trade value is tied up. Each side pays 1%, with the official clawback rule applied when larger.</p></article>
+              <article><span>05</span><h2 data-i18n="rule5Title">One final NVDA price</h2><p data-i18n="rule5Text">Trading locks 4 October at 09:00 UTC. The last Hyperliquid xyz:NVDA trade before 10:00 UTC settles every open position.</p></article>
+              <article><span>06</span><h2 data-i18n="rule6Title">Top three win</h2><p data-i18n="rule6Text">The three highest scores share 1,000,000 FLOP after mainnet, under the official claim rules.</p></article>
+            </div>
+            <section class="facts-table">
+              <div><span data-i18n="marketLabel">Market</span><strong>Hyperliquid xyz:NVDA</strong></div>
+              <div><span data-i18n="sweepInterval">Sweep interval</span><strong>5 min</strong></div>
+              <div><span data-i18n="fee">Fee</span><strong>1% / side + clawback</strong></div>
+              <div><span data-i18n="priceStep">Price / qty step</span><strong>0.01 / 0.01</strong></div>
+              <div><span data-i18n="minTrade">Minimum trade</span><strong>0.10 NVDA</strong></div>
+              <div><span data-i18n="identityPolicy">Identity</span><strong>Any Ed25519 did:key</strong></div>
+            </section>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <div id="offerDialog" class="dialog-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+      <div class="dialog">
+        <button id="closeDialog" class="icon-button dialog-close" type="button" aria-label="Close"><i data-lucide="x"></i></button>
+        <span class="eyebrow" data-i18n="counterSign">COUNTERSIGN</span>
+        <h2 id="dialogTitle" data-i18n="acceptCall">Accept this call?</h2>
+        <div id="dialogOffer" class="dialog-offer"></div>
+        <div class="dialog-warning"><i data-lucide="shield-check"></i><span data-i18n="officialPost">Your signature publishes an official trade to close1.</span></div>
+        <button id="acceptOfferButton" class="primary wide" type="button"><i data-lucide="signature"></i><span data-i18n="signAccept">Sign & accept</span></button>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="/vendor/lucide.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>
