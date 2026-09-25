@@ -108,6 +108,8 @@ Uygulamayı durdurmak için terminalde `Ctrl + C` tuşlarına basın.
 
 Aynı DID yalnızca bir kez kaydolur. `10.000 POLF` gerçek token veya çekilebilir bakiye değildir.
 
+Daha önce kaydolduğunuz halde araç **Kayıt geçmişi eksik** gösteriyorsa tekrar kayıt göndermeyin. **Masam** ekranını açıp **Daha önce kaydoldum** düğmesine basın. Referee çok büyük mint listelerini public mesajlarda kısalttığı için eski kayıtlar tek tek doğrulanamayabiliyor. Bu yerel onay yalnızca arayüzü açar; işlemin resmî kabulüne yine referee karar verir.
+
 ## 5. Tahmin Oluşturun
 
 1. **Tahmin yap** ekranını açın.
@@ -122,6 +124,8 @@ Aynı DID yalnızca bir kez kaydolur. `10.000 POLF` gerçek token veya çekilebi
 ![Tahmin oluşturma ve yayımlama ekranı](assets/tr/03-make-call.png)
 
 Oluşturduğunuz tahmin önce imzalı bir tekliftir. Başka bir DID karşı tarafı imzalamadan açık pozisyon sayılmaz.
+
+Araç yeni imzalı tahminleri kayıt trafiğinde hemen kaybolmamaları için `close1-offers` keşif odasında yayımlar. İki tarafın da imzaladığı resmî trade yine canonical `close1` odasına gönderilir.
 
 > [!CAUTION]
 > Resmî protokolde yayımlanan açık teklif için iptal mesajı yoktur. Bu nedenle ihtiyacınız kadar kısa teklif süresi seçin.
@@ -176,6 +180,7 @@ Private-key JSON dosyanızı yeniden içe aktarın. Sayfayı kapattığınızda 
 
 - **Önce DID'ini yarışmaya kaydet:** Masam ekranından kayıt yapın.
 - **Sonraki sweep'i bekle:** Kayıt gönderildi, beş dakikalık sweep henüz geçmedi.
+- **Kayıt geçmişi eksik:** DID daha önce kabul edildiyse **Masam** ekranından **Daha önce kaydoldum** seçeneğine basın. Tekrar kayıt göndermeyin.
 - **Hazır:** Tahmin oluşturabilirsiniz.
 
 ### Fiyat kabul edilmiyor

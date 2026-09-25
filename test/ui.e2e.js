@@ -42,11 +42,19 @@ const SNAPSHOT = {
   trades: [],
 };
 
-async function mockSnapshot(page) {
+async function mockSnapshot(page, snapshot = SNAPSHOT) {
   await page.route("**/api/snapshot*", (route) => route.fulfill({
     contentType: "application/json",
-    body: JSON.stringify({ ok: true, data: SNAPSHOT }),
+    body: JSON.stringify({ ok: true, data: snapshot }),
   }));
+}
+
+async function importKey(page, key) {
+  await page.locator("#keyFile").setInputFiles({
+    name: "test-private-key.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(key.payload)),
+  });
 }
 
 test("loads verified live market and keeps layout inside the viewport", async ({ page }) => {
@@ -78,11 +86,7 @@ test("imports a key locally without posting and enables registration", async ({ 
   await mockSnapshot(page);
   await page.goto("/");
   await expect(page.locator("#launchBadge")).toContainText(/Canlı ve doğrulandı|Live and verified/, { timeout: 20_000 });
-  await page.locator("#keyFile").setInputFiles({
-    name: "test-private-key.json",
-    mimeType: "application/json",
-    buffer: Buffer.from(JSON.stringify(key.payload)),
-  });
+  await importKey(page, key);
   await expect(page.locator("#identityDid")).toHaveText(key.did);
   await page.locator('[data-view-target="predict"]').click();
   await expect(page.locator("#predictSignerDid")).toHaveText(key.did);
@@ -90,4 +94,46 @@ test("imports a key locally without posting and enables registration", async ({ 
   await expect(page.locator("#predictSignerBadge")).toContainText(/Önce DID'ini yarışmaya kaydet|Register your DID in the contest first/);
   await page.locator('[data-view-target="desk"]').click();
   await expect(page.locator("#registerButton")).toBeEnabled();
+});
+
+test("does not mislabel an older registration when public mint lists are incomplete", async ({ page }) => {
+  const key = testKeyFile();
+  await mockSnapshot(page, { ...SNAPSHOT, visibility: { registrationIncomplete: true, omittedMints: 1441, offerRoom: "close1-offers" } });
+  await page.goto("/");
+  await importKey(page, key);
+  await page.locator('[data-view-target="predict"]').click();
+  await expect(page.locator("#predictSignerBadge")).toContainText(/Kayıt geçmişi eksik|Registration history incomplete/);
+  await page.locator('[data-view-target="desk"]').click();
+  await expect(page.locator("#registrationNotice")).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator("#confirmRegisteredButton")).toBeVisible();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+  await page.locator("#confirmRegisteredButton").click();
+  await expect(page.locator("#registrationStatus")).toContainText(/Hazır|Ready/);
+  await page.locator("#mobileMenu").click();
+  await page.locator('[data-view-target="predict"]').click();
+  await expect(page.locator("#publishOfferButton")).toBeEnabled();
+});
+
+test("publishes new maker offers to the dedicated signed offer room", async ({ page }) => {
+  const key = testKeyFile();
+  const readySnapshot = {
+    ...SNAPSHOT,
+    registrations: [{ did: key.did, ts: "2026-09-25T12:05:00.000Z" }],
+    minted: [key.did],
+    visibility: { registrationIncomplete: true, omittedMints: 1441, offerRoom: "close1-offers" },
+  };
+  let postedBody;
+  await mockSnapshot(page, readySnapshot);
+  await page.route("**/api/post", async (route) => {
+    postedBody = route.request().postDataJSON();
+    await route.fulfill({ contentType: "application/json", body: JSON.stringify({ ok: true, data: { posted: 1 } }) });
+  });
+  await page.goto("/");
+  await importKey(page, key);
+  await page.locator('[data-view-target="predict"]').click();
+  await page.locator("#publishOfferButton").click();
+  await expect.poll(() => postedBody?.room).toBe("close1-offers");
+  expect(JSON.parse(postedBody.text).t).toBe("close-call.offer.v1");
 });

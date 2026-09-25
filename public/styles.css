@@ -78,6 +78,9 @@ main { max-width: 1500px; margin: 0 auto; padding: 28px 30px 56px; }
 .view { display: none; }
 .view.active { display: block; }
 .page-heading { min-height: 58px; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
+.registration-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.registration-notice { display: flex; align-items: flex-start; gap: 10px; margin: -8px 0 18px; padding: 11px 13px; border: 1px solid #6b5a32; background: #211d13; color: #d8be78; font-size: 10px; line-height: 1.5; }
+.registration-notice svg { width: 16px; flex: 0 0 auto; }
 .eyebrow { display: block; margin-bottom: 7px; color: var(--green); font-size: 10px; font-weight: 700; text-transform: uppercase; }
 h1, h2, p { margin-top: 0; }
 h1 { margin-bottom: 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: clamp(24px, 3vw, 35px); line-height: 1.1; }

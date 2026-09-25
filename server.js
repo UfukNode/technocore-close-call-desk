@@ -70,9 +70,10 @@ async function fetchWithTimeout(url, options = {}) {
   }
 }
 
-async function readRoom(room) {
+async function readRoom(room, optional = false) {
   const response = await fetchWithTimeout(`${TECHNOCORE}/r/${encodeURIComponent(room)}?format=json&limit=200`);
   const text = await response.text();
+  if (optional && response.status === 404) return { room, messages: [] };
   if (!response.ok) throw new Error(text || `Technocore returned ${response.status}.`);
   return JSON.parse(text);
 }
@@ -116,12 +117,14 @@ function publicMessage(message) {
 
 async function buildSnapshot() {
   const officialRoomNames = [ROOMS.price, ROOMS.flow, ROOMS.state, ROOMS.positions, ROOMS.pnl];
-  const [tradingData, officialData, owners] = await Promise.all([
+  const [tradingData, offerData, officialData, owners] = await Promise.all([
     readRoom(ROOMS.trading),
+    readRoom(ROOMS.offers, true),
     Promise.all(officialRoomNames.map((room) => readRoom(room))),
     Promise.all(officialRoomNames.map((room) => readOwner(room))),
   ]);
   const tradingMessages = Array.isArray(tradingData.messages) ? tradingData.messages : [];
+  const offerMessages = Array.isArray(offerData.messages) ? offerData.messages : [];
   const official = Object.fromEntries(officialRoomNames.map((room, index) => [room, verifiedOfficial(room, officialData[index])]));
   const priceMessage = lastRecord(official[ROOMS.price], "price");
   const seedMessage = lastRecord(official[ROOMS.price], "seed");
@@ -138,32 +141,30 @@ async function buildSnapshot() {
   const registrations = [];
   const offers = [];
   const trades = [];
-  for (const message of tradingMessages) {
+  const roomMessages = [
+    ...tradingMessages.map((message) => ({ room: ROOMS.trading, message })),
+    ...offerMessages.map((message) => ({ room: ROOMS.offers, message })),
+  ];
+  for (const { room, message } of roomMessages) {
     const record = parseRecord(message.text);
-    if (!record || !verifyOuter(ROOMS.trading, message)) continue;
-    if (record.t === "owner" && record.season === CONTEST.id && record.key === message.from) {
+    if (!record || !verifyOuter(room, message)) continue;
+    if (room === ROOMS.trading && record.t === "owner" && record.season === CONTEST.id && record.key === message.from) {
       registrations.push({ did: message.from, seq: message.seq, ts: message.ts });
     } else if (record.t === "close-call.offer.v1" && verifyOffer(message, record)) {
-      offers.push({ ...publicMessage(message), record });
-    } else if (record.t === "trade" && verifyTrade(message, record)) {
+      offers.push({ ...publicMessage(message), room, record });
+    } else if (room === ROOMS.trading && record.t === "trade" && verifyTrade(message, record)) {
       trades.push({ ...publicMessage(message), record });
     }
   }
 
   const flowStatus = collectFlowStatus(official[ROOMS.flow]);
-  const latestRegistrationByDid = new Map();
-  for (const registration of registrations) latestRegistrationByDid.set(registration.did, registration);
-  const ownerReady = (did) => {
-    if (flowStatus.minted.has(did)) return true;
-    const registration = latestRegistrationByDid.get(did);
-    return Boolean(registration && flowMessage?.ts && new Date(flowMessage.ts) > new Date(registration.ts));
-  };
   const tradedIds = new Set(trades.map(({ record }) => record.terms.id));
   const limits = priceMessage?.record?.limits || seedMessage?.record?.limits || [];
   const currentSweep = Number(priceMessage?.record?.for || seedMessage?.record?.for || 1);
-  const activeOffers = offers.filter(({ record }) => (
+  const latestOfferById = new Map();
+  for (const offer of offers) latestOfferById.set(offer.record.terms.id, offer);
+  const activeOffers = [...latestOfferById.values()].filter(({ record }) => (
     !tradedIds.has(record.terms.id)
-    && ownerReady(record.terms.maker)
     && record.terms.until >= currentSweep
     && isWithinLimits(record.terms.px, limits)
   ));
@@ -197,6 +198,11 @@ async function buildSnapshot() {
     minted: [...flowStatus.minted],
     offers: activeOffers.slice(-150).reverse(),
     trades: publicTrades,
+    visibility: {
+      registrationIncomplete: Number(flowMessage?.record?.omitted?.mints || 0) > 0,
+      omittedMints: Number(flowMessage?.record?.omitted?.mints || 0),
+      offerRoom: ROOMS.offers,
+    },
   };
 }
 
@@ -216,6 +222,8 @@ async function getSnapshot(force = false) {
 }
 
 function validatePost(body) {
+  const room = String(body.room || ROOMS.trading);
+  if (room !== ROOMS.trading && room !== ROOMS.offers) throw new Error("Unsupported room.");
   const did = String(body.did || "");
   const sig = String(body.sig || "");
   const nonce = String(body.nonce || "");
@@ -225,18 +233,18 @@ function validatePost(body) {
   if (!/^[0-9]{1,19}$/.test(nonce)) throw new Error("Nonce must contain 1-19 digits.");
   if (!text || text.length > 4096) throw new Error("Message must contain 1-4096 characters.");
   const message = { from: did, sig, nonce, text };
-  if (!verifyOuter(ROOMS.trading, message)) throw new Error("Room signature verification failed.");
+  if (!verifyOuter(room, message)) throw new Error("Room signature verification failed.");
   const record = parseRecord(text);
   if (!record) throw new Error("Message must contain compact JSON.");
-  const owner = record.t === "owner" && record.season === CONTEST.id && record.key === did;
+  const owner = room === ROOMS.trading && record.t === "owner" && record.season === CONTEST.id && record.key === did;
   const offer = record.t === "close-call.offer.v1" && verifyOffer(message, record);
-  const trade = record.t === "trade" && verifyTrade(message, record);
+  const trade = room === ROOMS.trading && record.t === "trade" && verifyTrade(message, record);
   if (!owner && !offer && !trade) throw new Error("Unsupported or invalid Close Call message.");
-  return { did, sig, nonce, text };
+  return { room, did, sig, nonce, text };
 }
 
-async function postToTechnocore(body) {
-  const response = await fetchWithTimeout(`${TECHNOCORE}/r/${ROOMS.trading}?format=json`, {
+async function postToTechnocore(room, body) {
+  const response = await fetchWithTimeout(`${TECHNOCORE}/r/${room}?format=json`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -259,8 +267,8 @@ async function handleApi(request, response, requestUrl) {
     return;
   }
   if (request.method === "POST" && requestUrl.pathname === "/api/post") {
-    const signed = validatePost(await readJson(request));
-    sendJson(response, 200, { ok: true, data: await postToTechnocore(signed) });
+    const { room, ...signed } = validatePost(await readJson(request));
+    sendJson(response, 200, { ok: true, data: await postToTechnocore(room, signed) });
     return;
   }
   sendJson(response, 404, { ok: false, error: "Not found." });

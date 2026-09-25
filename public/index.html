@@ -151,7 +151,14 @@
           </section>
 
           <section class="view" data-view="desk">
-            <div class="page-heading"><div><span class="eyebrow" data-i18n="account">ACCOUNT</span><h1 data-i18n="myDeskTitle">My Close Call desk</h1></div><button id="registerButton" class="primary" type="button" disabled><i data-lucide="badge-check"></i><span data-i18n="register">Register & mint 10,000 POLF</span></button></div>
+            <div class="page-heading">
+              <div><span class="eyebrow" data-i18n="account">ACCOUNT</span><h1 data-i18n="myDeskTitle">My Close Call desk</h1></div>
+              <div class="registration-actions">
+                <button id="confirmRegisteredButton" class="secondary hidden" type="button"><i data-lucide="shield-check"></i><span data-i18n="confirmRegistered">I registered before</span></button>
+                <button id="registerButton" class="primary" type="button" disabled><i data-lucide="badge-check"></i><span data-i18n="register">Register for the first time</span></button>
+              </div>
+            </div>
+            <div id="registrationNotice" class="registration-notice hidden"><i data-lucide="info"></i><span data-i18n="registrationUnknownHelp">Older registrations cannot be checked individually because the public referee feed omits large mint lists. Do not register again if you already registered. This confirmation only unlocks the interface; the referee remains authoritative.</span></div>
             <section class="account-strip">
               <div><span data-i18n="registration">Registration</span><strong id="registrationStatus">-</strong></div>
               <div><span data-i18n="startingBalance">Starting balance</span><strong>10,000 POLF</strong></div>

@@ -3,6 +3,7 @@
 const CONTEST = Object.freeze({
   id: "close-1",
   room: "close1",
+  offerRoom: "close1-offers",
   opening: "2026-09-25T12:00:00Z",
   lock: "2026-10-04T09:00:00Z",
   lockSweep: 2556,
@@ -26,7 +27,7 @@ const i18n = {
     specificDid: "Belirli DID", makerWaits: "İşlem ancak karşı taraf imzalayınca başlar.", takerDid: "Taker DID", collateral: "Bağlanacak en yüksek teminat", baseFee: "Taraf başına temel ücret",
     makerSide: "Senin tarafın", publishOffer: "İmzala ve tahmini yayımla", irrevocable: "İmzalanmış açık teklif resmî protokolde iptal edilemez. Kısa süre seç.", priceGuard: "Fiyat koruması",
     protocolLimit: "Resmî ±%5 sınırı", ruleMaker: "Sen fiyatı ve yönü imzalarsın.", ruleTaker: "Başka bir DID karşı tarafı imzalar.", ruleReferee: "Referee sonraki sweep'te iki tarafı birlikte sonuçlandırır.",
-    account: "HESAP", myDeskTitle: "Close Call masam", register: "Kaydol ve 10.000 POLF al", registration: "Kayıt", startingBalance: "Başlangıç bakiyesi", myPosition: "Açık pozisyonum",
+    account: "HESAP", myDeskTitle: "Close Call masam", register: "İlk kez kaydol", confirmRegistered: "Daha önce kaydoldum", registration: "Kayıt", startingBalance: "Başlangıç bakiyesi", myPosition: "Açık pozisyonum",
     myScore: "Canlı skorum", myCalls: "Tahminlerim", fromPublicRoom: "Açık odadan", myTrades: "İşlemlerim", refereeStatus: "Referee durumu", acceptShared: "Paylaşılan tahmini kabul et",
     pasteOffer: "Başka oyuncunun imzalı offer JSON'ını yapıştır.", review: "Teklifi incele", rulesTitle: "Kurallar, gereksiz detay olmadan", canonicalRules: "Canonical kurallar",
     rule1Title: "Herkes eşit başlar", rule1Text: "Her DID bir kez 10.000 POLF alır. POLF burada yarışma bakiyesidir, cüzdan tokenı değildir.", rule2Title: "Bir tahmin iki imza ister",
@@ -37,7 +38,7 @@ const i18n = {
     priceStep: "Fiyat / miktar adımı", minTrade: "Minimum işlem", identityPolicy: "Kimlik", counterSign: "KARŞI İMZA", acceptCall: "Bu tahmini kabul et?", officialPost: "İmzan close1 odasına resmî trade gönderir.", signAccept: "İmzala ve kabul et",
     launchLive: "Canlı ve doğrulandı", launchInvalid: "Doğrulama başarısız", keyLoaded: "DID içe aktarıldı.", invalidKey: "Geçerli Technocore Ed25519 private-key JSON seç.", keyForgotten: "Anahtar sekmeden kaldırıldı.",
     refreshed: "Canlı veriler yenilendi.", noOffers: "Şu anda kabul edilebilir açık teklif yok.", takeLong: "LONG al", takeShort: "SHORT al", connectToTake: "Kabul etmek için DID bağla.",
-    registerFirst: "Önce DID'ini yarışmaya kaydet.", waitMint: "Kayıt gönderildi. Sonraki sweep'te 10.000 POLF tanımlanacak.", ready: "Hazır", notRegistered: "Kayıtlı değil", registrationPosted: "Kayıt imzalandı. Sonraki sweep'i bekle.",
+    registerFirst: "Önce DID'ini yarışmaya kaydet.", waitMint: "Kayıt gönderildi. Sonraki sweep'te 10.000 POLF tanımlanacak.", ready: "Hazır", notRegistered: "Kayıtlı değil", registrationUnknown: "Kayıt geçmişi eksik", registrationUnknownHelp: "Referee büyük mint listelerini public mesajlarda kısalttığı için eski kayıtlar tek tek doğrulanamıyor. Daha önce kaydolduysanız tekrar kayıt göndermeyin. Bu onay yalnızca arayüzü açar; resmî kararı referee verir.", registrationPosted: "Kayıt imzalandı. Sonraki sweep'i bekle.", registrationConfirmed: "Önceki kayıt bu tarayıcı için onaylandı.",
     offerPosted: "Tahmin yayımlandı. Karşı taraf imzaladığında resmî işlem oluşacak.", tradePosted: "Karşı imza gönderildi. Referee sonucunu bekle.", ownOffer: "Kendi teklifini kabul edemezsin.", reservedOffer: "Bu teklif başka bir DID için ayrılmış.",
     invalidOffer: "Offer JSON veya maker imzası geçersiz.", outsideLimits: "Fiyat güncel resmî aralığın dışında.", expiredOffer: "Teklifin sweep süresi dolmuş.", copied: "İmzalı offer JSON kopyalandı.", copy: "Kopyala",
     pending: "Bekliyor", settled: "Sonuçlandı", void: "Geçersiz", posted: "Gönderildi", publicTopOnly: "İlk 25 dışında", noPersonalCalls: "Aktif tahminin yok.", noPersonalTrades: "Henüz resmî işlemin yok.",
@@ -54,7 +55,7 @@ const i18n = {
     quantity: "Quantity", minimumQty: "Minimum 0.10", offerDuration: "Offer duration", counterparty: "Counterparty", anyDid: "Any registered DID", specificDid: "Specific DID", makerWaits: "The trade starts only after a taker signs.",
     takerDid: "Taker DID", collateral: "Maximum tied collateral", baseFee: "Base fee per side", makerSide: "Your side", publishOffer: "Sign & publish call", irrevocable: "A signed open offer cannot be revoked in the official protocol. Use a short expiry.",
     priceGuard: "Price guard", protocolLimit: "Official ±5% limit", ruleMaker: "You sign a price and direction.", ruleTaker: "Another DID signs the opposite side.", ruleReferee: "The referee settles both sides at the next sweep.",
-    account: "ACCOUNT", myDeskTitle: "My Close Call desk", register: "Register & mint 10,000 POLF", registration: "Registration", startingBalance: "Starting balance", myPosition: "Public position", myScore: "Public score",
+    account: "ACCOUNT", myDeskTitle: "My Close Call desk", register: "Register for the first time", confirmRegistered: "I registered before", registration: "Registration", startingBalance: "Starting balance", myPosition: "Public position", myScore: "Public score",
     myCalls: "My calls", fromPublicRoom: "From public room", myTrades: "My trades", refereeStatus: "Referee status", acceptShared: "Accept a shared call", pasteOffer: "Paste the signed offer JSON from another player.", review: "Review offer",
     rulesTitle: "Rules, without the noise", canonicalRules: "Canonical rules", rule1Title: "Everyone starts equal", rule1Text: "Each DID receives 10,000 POLF once. POLF is contest accounting, not a wallet token.",
     rule2Title: "A call needs two signatures", rule2Text: "A long only exists when another registered DID accepts the short side, or vice versa.", rule3Title: "Five-minute sweeps", rule3Text: "Nothing is final until the referee lists the trade as settled. Prices must stay inside the posted ±5% range.",
@@ -62,7 +63,7 @@ const i18n = {
     rule6Title: "Top three win", rule6Text: "The three highest scores share 1,000,000 FLOP after mainnet, under the official claim rules.", marketLabel: "Market", sweepInterval: "Sweep interval", fee: "Fee", priceStep: "Price / qty step", minTrade: "Minimum trade",
     identityPolicy: "Identity", counterSign: "COUNTERSIGN", acceptCall: "Accept this call?", officialPost: "Your signature publishes an official trade to close1.", signAccept: "Sign & accept", launchLive: "Live and verified", launchInvalid: "Verification failed",
     keyLoaded: "DID imported.", invalidKey: "Choose a valid Technocore Ed25519 private-key JSON.", keyForgotten: "Private key removed from this tab.", refreshed: "Live data refreshed.", noOffers: "No acceptable open offers right now.", takeLong: "Take LONG", takeShort: "Take SHORT",
-    connectToTake: "Connect a DID to accept.", registerFirst: "Register your DID in the contest first.", waitMint: "Registration posted. The next sweep will issue 10,000 POLF.", ready: "Ready", notRegistered: "Not registered", registrationPosted: "Registration signed. Wait for the next sweep.",
+    connectToTake: "Connect a DID to accept.", registerFirst: "Register your DID in the contest first.", waitMint: "Registration posted. The next sweep will issue 10,000 POLF.", ready: "Ready", notRegistered: "Not registered", registrationUnknown: "Registration history incomplete", registrationUnknownHelp: "The referee truncates large mint lists in public messages, so older registrations cannot be checked individually. Do not register again if you already registered. This confirmation only unlocks the interface; the referee remains authoritative.", registrationPosted: "Registration signed. Wait for the next sweep.", registrationConfirmed: "Previous registration confirmed for this browser.",
     offerPosted: "Call published. It becomes an official trade when another DID signs.", tradePosted: "Countersignature posted. Wait for the referee result.", ownOffer: "You cannot take your own offer.", reservedOffer: "This offer is reserved for another DID.", invalidOffer: "Offer JSON or maker signature is invalid.",
     outsideLimits: "Price is outside the current official range.", expiredOffer: "The offer has expired by sweep.", copied: "Signed offer JSON copied.", copy: "Copy", pending: "Pending", settled: "Settled", void: "Void", posted: "Posted", publicTopOnly: "Outside public top 25",
     noPersonalCalls: "You have no active calls.", noPersonalTrades: "You have no official trades yet.", sweepExpiry: "Until sweep {n}", updatedNow: "now", minutesAgo: "{n}m ago", secondsAgo: "{n}s ago", priceRangeHint: "Must be between {low} and {high}", expiresAtSweep: "Sweep {n}",
@@ -175,14 +176,14 @@ async function signPayload(payload) {
   return bytesToBase64url(new Uint8Array(signature));
 }
 
-async function postRecord(record) {
+async function postRecord(record, room = CONTEST.room) {
   const text = singleLine(compact(record));
   const nonce = nextNonce();
-  const sig = await signPayload(`${CONTEST.room}|${nonce}|${text}`);
+  const sig = await signPayload(`${room}|${nonce}|${text}`);
   return api("/api/post", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ did: state.did, sig, nonce, text }),
+    body: JSON.stringify({ room, did: state.did, sig, nonce, text }),
   });
 }
 
@@ -238,12 +239,33 @@ function latestRegistration() {
   return [...state.snapshot.registrations].reverse().find(({ did }) => did === state.did) || null;
 }
 
-function registrationReady() {
-  const registration = latestRegistration();
-  if (!registration || !state.snapshot) return false;
-  if (state.snapshot.minted.includes(state.did)) return true;
-  return Boolean(state.snapshot.market.flowTs && new Date(state.snapshot.market.flowTs) > new Date(registration.ts));
+function registrationProofKey() { return state.did ? `close-call-registration:${state.did}` : ""; }
+
+function localRegistrationProof() {
+  if (!state.did) return null;
+  try { return JSON.parse(localStorage.getItem(registrationProofKey()) || "null"); } catch { return null; }
 }
+
+function saveRegistrationProof(source) {
+  localStorage.setItem(registrationProofKey(), JSON.stringify({ source, ts: new Date().toISOString() }));
+}
+
+function registrationState() {
+  if (!state.did || !state.snapshot) return "disconnected";
+  const registration = latestRegistration();
+  if (state.snapshot.minted.includes(state.did)) return "ready";
+  if (registration) {
+    return state.snapshot.market.flowTs && new Date(state.snapshot.market.flowTs) > new Date(registration.ts) ? "ready" : "waiting";
+  }
+  const proof = localRegistrationProof();
+  if (proof?.source === "confirmed") return "ready";
+  if (proof?.source === "posted") {
+    return state.snapshot.market.flowTs && new Date(state.snapshot.market.flowTs) > new Date(proof.ts) ? "ready" : "waiting";
+  }
+  return state.snapshot.visibility?.registrationIncomplete ? "unknown" : "notRegistered";
+}
+
+function registrationReady() { return registrationState() === "ready"; }
 
 function marketPrice() {
   const price = state.snapshot?.market.price;
@@ -354,18 +376,22 @@ function renderTape() {
 
 function renderEligibility() {
   const connected = Boolean(state.did);
-  const registered = Boolean(latestRegistration());
+  const status = registrationState();
   const ready = registrationReady();
   const live = Boolean(state.snapshot?.launch.verified);
   const badge = $("#eligibilityBadge");
   badge.className = `status-badge ${ready && live ? "live" : "neutral"}`;
-  badge.textContent = !connected ? t("connectFirst") : !registered ? t("registerFirst") : !ready ? t("waitMint") : t("ready");
+  badge.textContent = !connected ? t("connectFirst") : status === "unknown" ? t("registrationUnknown") : status === "notRegistered" ? t("registerFirst") : !ready ? t("waitMint") : t("ready");
   const signerBadge = $("#predictSignerBadge");
   signerBadge.className = `status-badge ${ready && live ? "live" : "neutral"}`;
   signerBadge.textContent = badge.textContent;
   $("#publishOfferButton").disabled = !(connected && ready && live && Date.now() < new Date(CONTEST.lock).getTime());
-  $("#registerButton").disabled = !(connected && live && !registered && Date.now() < new Date(CONTEST.lock).getTime());
-  $("#registrationStatus").textContent = ready ? t("ready") : registered ? t("posted") : t("notRegistered");
+  const canRegister = connected && live && ["unknown", "notRegistered"].includes(status) && Date.now() < new Date(CONTEST.lock).getTime();
+  $("#registerButton").disabled = !canRegister;
+  $("#registerButton").classList.toggle("hidden", !["unknown", "notRegistered"].includes(status));
+  $("#confirmRegisteredButton").classList.toggle("hidden", status !== "unknown");
+  $("#registrationNotice").classList.toggle("hidden", status !== "unknown");
+  $("#registrationStatus").textContent = status === "ready" ? t("ready") : status === "waiting" ? t("posted") : status === "unknown" ? t("registrationUnknown") : t("notRegistered");
 }
 
 function renderOrderPreview() {
@@ -430,8 +456,16 @@ async function refreshSnapshot(notify = false) {
 async function registerOwner() {
   if (!state.did) throw new Error(t("connectFirst"));
   await postRecord({ t: "owner", season: CONTEST.id, key: state.did });
+  saveRegistrationProof("posted");
   await refreshSnapshot(true);
   showToast(t("registrationPosted"));
+}
+
+function confirmPreviousRegistration() {
+  if (!state.did) throw new Error(t("connectFirst"));
+  saveRegistrationProof("confirmed");
+  renderAll();
+  showToast(t("registrationConfirmed"));
 }
 
 async function publishOffer() {
@@ -444,7 +478,7 @@ async function publishOffer() {
   const taker = $("#takerMode").value === "specific" ? $("#specificTaker").value.trim() : "any";
   const terms = makeTerms({ id: randomId(), maker: state.did, px, qty, side: state.side, taker, until });
   const makerSig = await signPayload(makerPayload(terms));
-  await postRecord({ t: "close-call.offer.v1", season: CONTEST.id, terms, maker_sig: makerSig });
+  await postRecord({ t: "close-call.offer.v1", season: CONTEST.id, terms, maker_sig: makerSig }, CONTEST.offerRoom);
   await refreshSnapshot(true);
   showToast(t("offerPosted"));
   showView("market");
@@ -542,6 +576,7 @@ function bindEvents() {
   $("#forgetButton").addEventListener("click", forgetKey);
   $("#refreshButton").addEventListener("click", () => refreshSnapshot(true));
   $("#registerButton").addEventListener("click", () => registerOwner().catch((error) => showToast(error.message)));
+  $("#confirmRegisteredButton").addEventListener("click", () => { try { confirmPreviousRegistration(); } catch (error) { showToast(error.message); } });
   $$('[data-side]').forEach((button) => button.addEventListener("click", () => {
     state.side = button.dataset.side;
     $$('[data-side]').forEach((item) => item.classList.toggle("active", item === button));

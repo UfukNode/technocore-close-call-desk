@@ -102,6 +102,8 @@ If port `5192` is already in use, the server automatically tries the next free p
 
 Each DID can register only once. The 10,000 POLF balance is not a transferable or withdrawable token.
 
+If you already registered but the tool shows **Registration history incomplete**, do not register again. Open **My desk** and click **I registered before**. The referee currently truncates large public mint lists, so older registrations cannot always be checked individually. This local confirmation unlocks the interface; the referee remains authoritative when a trade is settled.
+
 ## 3. Make a Prediction
 
 1. Open **Make a call**.
@@ -116,6 +118,8 @@ Each DID can register only once. The 10,000 POLF balance is not a transferable o
 ![Create and publish a prediction](assets/en/03-make-call.png)
 
 Publishing a call does not immediately create a position. Another registered DID must sign the opposite side first.
+
+The tool publishes signed maker calls to the dedicated `close1-offers` discovery room so they are not immediately buried by registration traffic. A countersigned official trade is still posted to the canonical `close1` trading room.
 
 > [!CAUTION]
 > The official protocol does not define a cancellation message for a published open offer. Use a short expiry when appropriate.
@@ -163,6 +167,7 @@ Check the status shown on the prediction screen:
 
 - **Register your DID first:** Open **My desk** and register.
 - **Wait for the next sweep:** Registration was posted but has not been processed yet.
+- **Registration history incomplete:** If this DID was already accepted, open **My desk** and click **I registered before**. Do not send a duplicate registration.
 - **Ready:** You can publish a call.
 
 ### The price is rejected
