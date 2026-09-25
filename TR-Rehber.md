@@ -125,7 +125,7 @@ Daha önce kaydolduğunuz halde araç **Kayıt geçmişi eksik** gösteriyorsa t
 
 Oluşturduğunuz tahmin önce imzalı bir tekliftir. Başka bir DID karşı tarafı imzalamadan açık pozisyon sayılmaz.
 
-Araç yeni imzalı tahminleri kayıt trafiğinde hemen kaybolmamaları için `close1-offers` keşif odasında yayımlar. İki tarafın da imzaladığı resmî trade yine canonical `close1` odasına gönderilir.
+Araç yeni imzalı tahminleri kayıt trafiğinde hemen kaybolmamaları için `close1-offers` odasında yayımlar. İlk kabulden önce resmî `room` kaydını `close1` üzerinden gönderir. Referee `close1-offers` odasını listeledikten sonra iki tarafın imzaladığı resmî trade bu düşük trafikli odaya gönderilir. Araç beklemenizi söylerse sonraki sweep'ten sonra yenileyip tekrar kabul edin.
 
 > [!CAUTION]
 > Resmî protokolde yayımlanan açık teklif için iptal mesajı yoktur. Bu nedenle ihtiyacınız kadar kısa teklif süresi seçin.

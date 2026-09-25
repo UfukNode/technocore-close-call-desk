@@ -35,11 +35,11 @@ const i18n = {
     rule4Title: "Kaldıraç yok", rule4Text: "İşlem değerinin tamamı bağlanır. Her taraf %1 öder; daha büyükse resmî clawback uygulanır.", rule5Title: "Tek final NVDA fiyatı",
     rule5Text: "İşlemler 4 Ekim 09:00 UTC'de kilitlenir. 10:00 UTC öncesindeki son Hyperliquid xyz:NVDA işlemi tüm pozisyonları kapatır.", rule6Title: "İlk üç kazanır",
     rule6Text: "En yüksek üç skor, mainnet sonrasında resmî claim kurallarıyla 1.000.000 FLOP'u paylaşır.", marketLabel: "Piyasa", sweepInterval: "Sweep aralığı", fee: "Ücret",
-    priceStep: "Fiyat / miktar adımı", minTrade: "Minimum işlem", identityPolicy: "Kimlik", counterSign: "KARŞI İMZA", acceptCall: "Bu tahmini kabul et?", officialPost: "İmzan close1 odasına resmî trade gönderir.", signAccept: "İmzala ve kabul et",
+    priceStep: "Fiyat / miktar adımı", minTrade: "Minimum işlem", identityPolicy: "Kimlik", counterSign: "KARŞI İMZA", acceptCall: "Bu tahmini kabul et?", officialPost: "İmzan kayıtlı close1-offers odasına resmî trade gönderir.", signAccept: "İmzala ve kabul et",
     launchLive: "Canlı ve doğrulandı", launchInvalid: "Doğrulama başarısız", keyLoaded: "DID içe aktarıldı.", invalidKey: "Geçerli Technocore Ed25519 private-key JSON seç.", keyForgotten: "Anahtar sekmeden kaldırıldı.",
     refreshed: "Canlı veriler yenilendi.", noOffers: "Şu anda kabul edilebilir açık teklif yok.", takeLong: "LONG al", takeShort: "SHORT al", connectToTake: "Kabul etmek için DID bağla.",
     registerFirst: "Önce DID'ini yarışmaya kaydet.", waitMint: "Kayıt gönderildi. Sonraki sweep'te 10.000 POLF tanımlanacak.", ready: "Hazır", notRegistered: "Kayıtlı değil", registrationUnknown: "Kayıt geçmişi eksik", registrationUnknownHelp: "Referee büyük mint listelerini public mesajlarda kısalttığı için eski kayıtlar tek tek doğrulanamıyor. Daha önce kaydolduysanız tekrar kayıt göndermeyin. Bu onay yalnızca arayüzü açar; resmî kararı referee verir.", registrationPosted: "Kayıt imzalandı. Sonraki sweep'i bekle.", registrationConfirmed: "Önceki kayıt bu tarayıcı için onaylandı.",
-    offerPosted: "Tahmin yayımlandı. Karşı taraf imzaladığında resmî işlem oluşacak.", tradePosted: "Karşı imza gönderildi. Referee sonucunu bekle.", ownOffer: "Kendi teklifini kabul edemezsin.", reservedOffer: "Bu teklif başka bir DID için ayrılmış.",
+    offerPosted: "Tahmin yayımlandı. Karşı taraf imzaladığında resmî işlem oluşacak.", offerPostedRoomPending: "Tahmin yayımlandı. İşlem odası kaydı gönderildi; referee listeleyene kadar kabul için sonraki sweep'i bekleyin.", tradeRoomWaiting: "İşlem odası kaydı gönderildi. Referee odayı listeledikten sonra tahmini tekrar kabul edin.", tradePosted: "Karşı imza gönderildi. Referee sonucunu bekle.", ownOffer: "Kendi teklifini kabul edemezsin.", reservedOffer: "Bu teklif başka bir DID için ayrılmış.",
     invalidOffer: "Offer JSON veya maker imzası geçersiz.", outsideLimits: "Fiyat güncel resmî aralığın dışında.", expiredOffer: "Teklifin sweep süresi dolmuş.", copied: "İmzalı offer JSON kopyalandı.", copy: "Kopyala",
     pending: "Bekliyor", settled: "Sonuçlandı", void: "Geçersiz", posted: "Gönderildi", publicTopOnly: "İlk 25 dışında", noPersonalCalls: "Aktif tahminin yok.", noPersonalTrades: "Henüz resmî işlemin yok.",
     sweepExpiry: "Sweep {n}'e kadar", updatedNow: "şimdi", minutesAgo: "{n} dk önce", secondsAgo: "{n} sn önce", priceRangeHint: "{low} ile {high} arasında olmalı", expiresAtSweep: "Sweep {n}",
@@ -61,10 +61,10 @@ const i18n = {
     rule2Title: "A call needs two signatures", rule2Text: "A long only exists when another registered DID accepts the short side, or vice versa.", rule3Title: "Five-minute sweeps", rule3Text: "Nothing is final until the referee lists the trade as settled. Prices must stay inside the posted ±5% range.",
     rule4Title: "No leverage", rule4Text: "The full trade value is tied up. Each side pays 1%, with the official clawback rule applied when larger.", rule5Title: "One final NVDA price", rule5Text: "Trading locks 4 October at 09:00 UTC. The last Hyperliquid xyz:NVDA trade before 10:00 UTC settles every open position.",
     rule6Title: "Top three win", rule6Text: "The three highest scores share 1,000,000 FLOP after mainnet, under the official claim rules.", marketLabel: "Market", sweepInterval: "Sweep interval", fee: "Fee", priceStep: "Price / qty step", minTrade: "Minimum trade",
-    identityPolicy: "Identity", counterSign: "COUNTERSIGN", acceptCall: "Accept this call?", officialPost: "Your signature publishes an official trade to close1.", signAccept: "Sign & accept", launchLive: "Live and verified", launchInvalid: "Verification failed",
+    identityPolicy: "Identity", counterSign: "COUNTERSIGN", acceptCall: "Accept this call?", officialPost: "Your signature publishes the official trade to the registered close1-offers room.", signAccept: "Sign & accept", launchLive: "Live and verified", launchInvalid: "Verification failed",
     keyLoaded: "DID imported.", invalidKey: "Choose a valid Technocore Ed25519 private-key JSON.", keyForgotten: "Private key removed from this tab.", refreshed: "Live data refreshed.", noOffers: "No acceptable open offers right now.", takeLong: "Take LONG", takeShort: "Take SHORT",
     connectToTake: "Connect a DID to accept.", registerFirst: "Register your DID in the contest first.", waitMint: "Registration posted. The next sweep will issue 10,000 POLF.", ready: "Ready", notRegistered: "Not registered", registrationUnknown: "Registration history incomplete", registrationUnknownHelp: "The referee truncates large mint lists in public messages, so older registrations cannot be checked individually. Do not register again if you already registered. This confirmation only unlocks the interface; the referee remains authoritative.", registrationPosted: "Registration signed. Wait for the next sweep.", registrationConfirmed: "Previous registration confirmed for this browser.",
-    offerPosted: "Call published. It becomes an official trade when another DID signs.", tradePosted: "Countersignature posted. Wait for the referee result.", ownOffer: "You cannot take your own offer.", reservedOffer: "This offer is reserved for another DID.", invalidOffer: "Offer JSON or maker signature is invalid.",
+    offerPosted: "Call published. It becomes an official trade when another DID signs.", offerPostedRoomPending: "Call published. Trading-room registration was sent; wait for the next sweep before acceptance.", tradeRoomWaiting: "Trading-room registration was sent. Accept the call again after the referee lists the room.", tradePosted: "Countersignature posted. Wait for the referee result.", ownOffer: "You cannot take your own offer.", reservedOffer: "This offer is reserved for another DID.", invalidOffer: "Offer JSON or maker signature is invalid.",
     outsideLimits: "Price is outside the current official range.", expiredOffer: "The offer has expired by sweep.", copied: "Signed offer JSON copied.", copy: "Copy", pending: "Pending", settled: "Settled", void: "Void", posted: "Posted", publicTopOnly: "Outside public top 25",
     noPersonalCalls: "You have no active calls.", noPersonalTrades: "You have no official trades yet.", sweepExpiry: "Until sweep {n}", updatedNow: "now", minutesAgo: "{n}m ago", secondsAgo: "{n}s ago", priceRangeHint: "Must be between {low} and {high}", expiresAtSweep: "Sweep {n}",
   },
@@ -250,6 +250,42 @@ function saveRegistrationProof(source) {
   localStorage.setItem(registrationProofKey(), JSON.stringify({ source, ts: new Date().toISOString() }));
 }
 
+function localTradesKey() { return state.did ? `close-call-trades:${state.did}` : ""; }
+
+function localTrades() {
+  if (!state.did) return [];
+  let entries;
+  try { entries = JSON.parse(localStorage.getItem(localTradesKey()) || "[]"); } catch { return []; }
+  if (!Array.isArray(entries)) return [];
+  return entries.flatMap((entry) => {
+    try {
+      const record = entry?.record;
+      const terms = makeTerms(record?.terms);
+      if (record?.t !== "trade" || record.season !== CONTEST.id || !DID_RE.test(record.taker) || !SIG_RE.test(record.maker_sig) || !SIG_RE.test(record.taker_sig)) return [];
+      return [{ record: { ...record, terms }, status: "pending", reason: "", ts: entry.ts || "" }];
+    } catch { return []; }
+  });
+}
+
+function saveLocalTrade(record) {
+  const entries = localTrades().filter((entry) => entry.record.terms.id !== record.terms.id);
+  entries.push({ record, ts: new Date().toISOString() });
+  localStorage.setItem(localTradesKey(), JSON.stringify(entries.slice(-100).map(({ record: item, ts }) => ({ record: item, ts }))));
+}
+
+function personalTrades() {
+  if (!state.did) return [];
+  const trades = new Map(localTrades().map((trade) => [trade.record.terms.id, trade]));
+  for (const trade of state.snapshot?.trades || []) {
+    if (trade.record.terms.maker === state.did || trade.record.taker === state.did) trades.set(trade.record.terms.id, trade);
+  }
+  return [...trades.values()].reverse();
+}
+
+function acceptedTradeIds() {
+  return new Set(personalTrades().map(({ record }) => record.terms.id));
+}
+
 function registrationState() {
   if (!state.did || !state.snapshot) return "disconnected";
   const registration = latestRegistration();
@@ -266,6 +302,11 @@ function registrationState() {
 }
 
 function registrationReady() { return registrationState() === "ready"; }
+function tradeRoomReady() { return Boolean(state.snapshot?.visibility?.offerRoomRegistered); }
+
+async function requestTradeRoomRegistration() {
+  await postRecord({ t: "room", season: CONTEST.id, room: CONTEST.offerRoom });
+}
 
 function marketPrice() {
   const price = state.snapshot?.market.price;
@@ -351,7 +392,8 @@ function offerDirection(record, takerView = false) {
 }
 
 function renderOffers() {
-  const offers = state.snapshot?.offers || [];
+  const accepted = acceptedTradeIds();
+  const offers = (state.snapshot?.offers || []).filter(({ record }) => !accepted.has(record.terms.id));
   const filtered = offers.filter(({ record }) => state.offerFilter === "all" || offerDirection(record) === state.offerFilter);
   $("#offerSummary").textContent = String(filtered.length);
   $("#offerList").innerHTML = filtered.length ? filtered.map(({ record, ts }) => {
@@ -416,8 +458,9 @@ function findPublicValue(list, did) {
 }
 
 function renderDesk() {
-  const offers = (state.snapshot?.offers || []).filter(({ record }) => record.terms.maker === state.did);
-  const trades = (state.snapshot?.trades || []).filter(({ record }) => record.terms.maker === state.did || record.taker === state.did);
+  const accepted = acceptedTradeIds();
+  const offers = (state.snapshot?.offers || []).filter(({ record }) => record.terms.maker === state.did && !accepted.has(record.terms.id));
+  const trades = personalTrades();
   $("#myOffers").innerHTML = state.did && offers.length ? offers.map(({ record }) => `<div class="desk-row"><div><strong>${offerDirection(record).toUpperCase()} · ${record.terms.qty} @ ${record.terms.px}</strong><code>${t("sweepExpiry", { n: record.terms.until })}</code></div><button class="secondary" type="button" data-copy="${record.terms.id}"><i data-lucide="copy"></i><span>${t("copy")}</span></button></div>`).join("") : `<div class="empty-state"><span>${t("noPersonalCalls")}</span></div>`;
   $("#myTrades").innerHTML = state.did && trades.length ? trades.map(({ record, status, reason }) => `<div class="desk-row"><div><strong>${record.terms.qty} @ ${record.terms.px}</strong><code>${record.terms.id}${reason ? ` · ${reason}` : ""}</code></div><span class="trade-status ${status}">${t(status)}</span></div>`).join("") : `<div class="empty-state"><span>${t("noPersonalTrades")}</span></div>`;
   const position = findPublicValue(state.snapshot?.market.positions?.top, state.did);
@@ -478,9 +521,11 @@ async function publishOffer() {
   const taker = $("#takerMode").value === "specific" ? $("#specificTaker").value.trim() : "any";
   const terms = makeTerms({ id: randomId(), maker: state.did, px, qty, side: state.side, taker, until });
   const makerSig = await signPayload(makerPayload(terms));
+  const roomPending = !tradeRoomReady();
+  if (roomPending) await requestTradeRoomRegistration();
   await postRecord({ t: "close-call.offer.v1", season: CONTEST.id, terms, maker_sig: makerSig }, CONTEST.offerRoom);
   await refreshSnapshot(true);
-  showToast(t("offerPosted"));
+  showToast(t(roomPending ? "offerPostedRoomPending" : "offerPosted"));
   showView("market");
 }
 
@@ -501,22 +546,36 @@ function openOfferDialog(offer) {
 }
 
 async function acceptSelectedOffer() {
+  const button = $("#acceptOfferButton");
+  if (button.disabled) return;
+  button.disabled = true;
   const record = state.selectedOffer;
-  if (!record || !await verifyOfferRecord(record)) throw new Error(t("invalidOffer"));
-  const takerSig = await signPayload(takerPayload(record.terms, state.did));
-  const trade = {
-    t: "trade",
-    season: CONTEST.id,
-    terms: makeTerms(record.terms),
-    taker: state.did,
-    maker_sig: record.maker_sig,
-    taker_sig: takerSig,
-  };
-  await postRecord(trade);
-  $("#offerDialog").classList.add("hidden");
-  state.selectedOffer = null;
-  await refreshSnapshot(true);
-  showToast(t("tradePosted"));
+  try {
+    if (!record || !await verifyOfferRecord(record)) throw new Error(t("invalidOffer"));
+    if (!tradeRoomReady()) {
+      await requestTradeRoomRegistration();
+      await refreshSnapshot(true);
+      throw new Error(t("tradeRoomWaiting"));
+    }
+    const takerSig = await signPayload(takerPayload(record.terms, state.did));
+    const trade = {
+      t: "trade",
+      season: CONTEST.id,
+      terms: makeTerms(record.terms),
+      taker: state.did,
+      maker_sig: record.maker_sig,
+      taker_sig: takerSig,
+    };
+    await postRecord(trade, CONTEST.offerRoom);
+    saveLocalTrade(trade);
+    renderAll();
+    $("#offerDialog").classList.add("hidden");
+    state.selectedOffer = null;
+    await refreshSnapshot(true);
+    showToast(t("tradePosted"));
+  } finally {
+    button.disabled = false;
+  }
 }
 
 async function reviewPastedOffer() {

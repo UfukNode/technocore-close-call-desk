@@ -21,7 +21,11 @@ function testKeyFile() {
   const publicJwk = publicKey.export({ format: "jwk" });
   const privateJwk = privateKey.export({ format: "jwk" });
   const did = `did:key:z${base58Encode(Buffer.concat([Buffer.from([0xed, 0x01]), Buffer.from(publicJwk.x, "base64url")]))}`;
-  return { did, payload: { did, privateKeyJwk: privateJwk } };
+  return {
+    did,
+    payload: { did, privateKeyJwk: privateJwk },
+    sign: (payload) => crypto.sign(null, Buffer.from(payload), privateKey).toString("base64url"),
+  };
 }
 
 const SNAPSHOT = {
@@ -40,6 +44,7 @@ const SNAPSHOT = {
   minted: [],
   offers: [],
   trades: [],
+  visibility: { registrationIncomplete: false, omittedMints: 0, offerRoom: "close1-offers", offerRoomRegistered: true },
 };
 
 async function mockSnapshot(page, snapshot = SNAPSHOT) {
@@ -122,18 +127,57 @@ test("publishes new maker offers to the dedicated signed offer room", async ({ p
     ...SNAPSHOT,
     registrations: [{ did: key.did, ts: "2026-09-25T12:05:00.000Z" }],
     minted: [key.did],
-    visibility: { registrationIncomplete: true, omittedMints: 1441, offerRoom: "close1-offers" },
+    visibility: { registrationIncomplete: true, omittedMints: 1441, offerRoom: "close1-offers", offerRoomRegistered: false },
   };
-  let postedBody;
+  const posts = [];
   await mockSnapshot(page, readySnapshot);
   await page.route("**/api/post", async (route) => {
-    postedBody = route.request().postDataJSON();
+    posts.push(route.request().postDataJSON());
     await route.fulfill({ contentType: "application/json", body: JSON.stringify({ ok: true, data: { posted: 1 } }) });
   });
   await page.goto("/");
   await importKey(page, key);
   await page.locator('[data-view-target="predict"]').click();
   await page.locator("#publishOfferButton").click();
-  await expect.poll(() => postedBody?.room).toBe("close1-offers");
-  expect(JSON.parse(postedBody.text).t).toBe("close-call.offer.v1");
+  await expect.poll(() => posts.length).toBe(2);
+  expect(posts.map(({ room }) => room)).toEqual(["close1", "close1-offers"]);
+  expect(posts.map(({ text }) => JSON.parse(text).t)).toEqual(["room", "close-call.offer.v1"]);
+});
+
+test("keeps an accepted trade on the desk when close1 traffic buries it", async ({ page }) => {
+  const maker = testKeyFile();
+  const taker = testKeyFile();
+  const terms = { id: "accepted-call-1", maker: maker.did, px: "225.67", qty: "1", side: "buy", taker: "any", until: 9 };
+  const offer = {
+    t: "close-call.offer.v1",
+    season: "close-1",
+    terms,
+    maker_sig: maker.sign(`close-1|terms|${JSON.stringify(terms)}`),
+  };
+  const staleSnapshot = {
+    ...SNAPSHOT,
+    registrations: [{ did: taker.did, ts: "2026-09-25T12:05:00.000Z" }],
+    minted: [taker.did],
+    offers: [{ record: offer, ts: "2026-09-25T12:09:00.000Z" }],
+    visibility: { registrationIncomplete: true, omittedMints: 1441, offerRoom: "close1-offers", offerRoomRegistered: true },
+  };
+  const posts = [];
+  await mockSnapshot(page, staleSnapshot);
+  await page.route("**/api/post", async (route) => {
+    posts.push(route.request().postDataJSON());
+    await route.fulfill({ contentType: "application/json", body: JSON.stringify({ ok: true, data: { posted: 1 } }) });
+  });
+  await page.goto("/");
+  await importKey(page, taker);
+  await page.locator(`[data-take="${terms.id}"]`).click();
+  await page.locator("#acceptOfferButton").click();
+  await expect.poll(() => posts.length).toBe(1);
+  expect(posts.map(({ room }) => room)).toEqual(["close1-offers"]);
+  expect(posts.every(({ text }) => JSON.parse(text).t === "trade")).toBe(true);
+  await page.locator('[data-view-target="desk"]').click();
+  await expect(page.locator("#myTrades")).toContainText(terms.id);
+  await page.locator("#refreshButton").click();
+  await expect(page.locator("#myTrades")).toContainText(terms.id);
+  await page.locator('[data-view-target="market"]').click();
+  await expect(page.locator(`[data-take="${terms.id}"]`)).toHaveCount(0);
 });

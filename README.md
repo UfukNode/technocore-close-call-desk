@@ -119,7 +119,7 @@ If you already registered but the tool shows **Registration history incomplete**
 
 Publishing a call does not immediately create a position. Another registered DID must sign the opposite side first.
 
-The tool publishes signed maker calls to the dedicated `close1-offers` discovery room so they are not immediately buried by registration traffic. A countersigned official trade is still posted to the canonical `close1` trading room.
+The tool publishes signed maker calls to the dedicated `close1-offers` room so they are not immediately buried by registration traffic. Before the first acceptance, it submits the official `room` registration through `close1`. Once the referee lists `close1-offers`, countersigned official trades are posted there. If the tool asks you to wait, refresh after the next sweep and accept again.
 
 > [!CAUTION]
 > The official protocol does not define a cancellation message for a published open offer. Use a short expiry when appropriate.

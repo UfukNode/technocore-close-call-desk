@@ -20,6 +20,8 @@ const publicRoot = path.join(__dirname, "public");
 const safePublicRoot = `${publicRoot}${path.sep}`;
 const lucidePath = path.join(__dirname, "node_modules", "lucide", "dist", "umd", "lucide.min.js");
 const snapshotCache = { expiresAt: 0, promise: null, value: null };
+const knownTrades = new Map();
+let tradeHistorySeed = null;
 
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
@@ -78,6 +80,30 @@ async function readRoom(room, optional = false) {
   return JSON.parse(text);
 }
 
+function rememberTrade(message, record, room = ROOMS.trading) {
+  const id = record.terms.id;
+  if (!knownTrades.has(id)) knownTrades.set(id, { ...publicMessage(message), room, record });
+}
+
+async function seedTradeHistory() {
+  if (!tradeHistorySeed) {
+    tradeHistorySeed = (async () => {
+      const response = await fetchWithTimeout(`${TECHNOCORE}/r/${ROOMS.trading}/export`);
+      if (!response.ok) throw new Error(`Technocore export returned ${response.status}.`);
+      const lines = (await response.text()).split("\n");
+      for (const line of lines) {
+        let message;
+        try { message = JSON.parse(line); } catch { continue; }
+        const record = parseRecord(message.text);
+        if (record?.t === "trade" && verifyOuter(ROOMS.trading, message) && verifyTrade(message, record)) {
+          rememberTrade(message, record);
+        }
+      }
+    })().catch(() => {});
+  }
+  await tradeHistorySeed;
+}
+
 async function readOwner(room) {
   const response = await fetchWithTimeout(`${TECHNOCORE}/kv/room-owners/${encodeURIComponent(room)}`);
   const text = await response.text();
@@ -99,6 +125,7 @@ function collectFlowStatus(messages) {
   const settled = new Set();
   const voided = new Map();
   const minted = new Set();
+  const registeredRooms = new Set([ROOMS.trading]);
   for (const { record } of messages) {
     for (const id of record.settled || []) settled.add(String(Array.isArray(id) ? id[0] : id));
     for (const item of record.void || []) {
@@ -107,8 +134,12 @@ function collectFlowStatus(messages) {
       else voided.set(String(item), "void");
     }
     for (const did of record.mints || []) if (DID_RE.test(String(did))) minted.add(String(did));
+    for (const item of record.rooms || []) {
+      const room = Array.isArray(item) ? item[0] : item && typeof item === "object" ? item.room || item.name : item;
+      if (typeof room === "string") registeredRooms.add(room);
+    }
   }
-  return { settled, voided, minted };
+  return { settled, voided, minted, registeredRooms };
 }
 
 function publicMessage(message) {
@@ -116,6 +147,7 @@ function publicMessage(message) {
 }
 
 async function buildSnapshot() {
+  await seedTradeHistory();
   const officialRoomNames = [ROOMS.price, ROOMS.flow, ROOMS.state, ROOMS.positions, ROOMS.pnl];
   const [tradingData, offerData, officialData, owners] = await Promise.all([
     readRoom(ROOMS.trading),
@@ -140,7 +172,7 @@ async function buildSnapshot() {
 
   const registrations = [];
   const offers = [];
-  const trades = [];
+  const discoveryTrades = [];
   const roomMessages = [
     ...tradingMessages.map((message) => ({ room: ROOMS.trading, message })),
     ...offerMessages.map((message) => ({ room: ROOMS.offers, message })),
@@ -152,13 +184,17 @@ async function buildSnapshot() {
       registrations.push({ did: message.from, seq: message.seq, ts: message.ts });
     } else if (record.t === "close-call.offer.v1" && verifyOffer(message, record)) {
       offers.push({ ...publicMessage(message), room, record });
-    } else if (room === ROOMS.trading && record.t === "trade" && verifyTrade(message, record)) {
-      trades.push({ ...publicMessage(message), record });
+    } else if (record.t === "trade" && verifyTrade(message, record)) {
+      if (room === ROOMS.trading) rememberTrade(message, record, room);
+      else discoveryTrades.push({ ...publicMessage(message), room, record });
     }
   }
 
   const flowStatus = collectFlowStatus(official[ROOMS.flow]);
-  const tradedIds = new Set(trades.map(({ record }) => record.terms.id));
+  const tradedIds = new Set([
+    ...knownTrades.keys(),
+    ...discoveryTrades.map(({ record }) => record.terms.id),
+  ]);
   const limits = priceMessage?.record?.limits || seedMessage?.record?.limits || [];
   const currentSweep = Number(priceMessage?.record?.for || seedMessage?.record?.for || 1);
   const latestOfferById = new Map();
@@ -168,7 +204,9 @@ async function buildSnapshot() {
     && record.terms.until >= currentSweep
     && isWithinLimits(record.terms.px, limits)
   ));
-  const publicTrades = trades.slice(-80).reverse().map((trade) => ({
+  const latestTradeById = new Map(knownTrades);
+  for (const trade of discoveryTrades) if (!latestTradeById.has(trade.record.terms.id)) latestTradeById.set(trade.record.terms.id, trade);
+  const publicTrades = [...latestTradeById.values()].slice(-150).reverse().map((trade) => ({
     ...trade,
     status: flowStatus.settled.has(trade.record.terms.id)
       ? "settled"
@@ -202,6 +240,7 @@ async function buildSnapshot() {
       registrationIncomplete: Number(flowMessage?.record?.omitted?.mints || 0) > 0,
       omittedMints: Number(flowMessage?.record?.omitted?.mints || 0),
       offerRoom: ROOMS.offers,
+      offerRoomRegistered: flowStatus.registeredRooms.has(ROOMS.offers),
     },
   };
 }
@@ -237,10 +276,11 @@ function validatePost(body) {
   const record = parseRecord(text);
   if (!record) throw new Error("Message must contain compact JSON.");
   const owner = room === ROOMS.trading && record.t === "owner" && record.season === CONTEST.id && record.key === did;
+  const roomRegistration = room === ROOMS.trading && record.t === "room" && record.season === CONTEST.id && record.room === ROOMS.offers;
   const offer = record.t === "close-call.offer.v1" && verifyOffer(message, record);
-  const trade = room === ROOMS.trading && record.t === "trade" && verifyTrade(message, record);
-  if (!owner && !offer && !trade) throw new Error("Unsupported or invalid Close Call message.");
-  return { room, did, sig, nonce, text };
+  const trade = record.t === "trade" && verifyTrade(message, record);
+  if (!owner && !roomRegistration && !offer && !trade) throw new Error("Unsupported or invalid Close Call message.");
+  return { room, did, sig, nonce, text, record };
 }
 
 async function postToTechnocore(room, body) {
@@ -267,8 +307,10 @@ async function handleApi(request, response, requestUrl) {
     return;
   }
   if (request.method === "POST" && requestUrl.pathname === "/api/post") {
-    const { room, ...signed } = validatePost(await readJson(request));
-    sendJson(response, 200, { ok: true, data: await postToTechnocore(room, signed) });
+    const { room, record, ...signed } = validatePost(await readJson(request));
+    const data = await postToTechnocore(room, signed);
+    if (record.t === "trade" && room === ROOMS.trading) rememberTrade({ ...signed, ...data }, record, room);
+    sendJson(response, 200, { ok: true, data });
     return;
   }
   sendJson(response, 404, { ok: false, error: "Not found." });
