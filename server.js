@@ -21,6 +21,9 @@ const safePublicRoot = `${publicRoot}${path.sep}`;
 const lucidePath = path.join(__dirname, "node_modules", "lucide", "dist", "umd", "lucide.min.js");
 const snapshotCache = { expiresAt: 0, promise: null, value: null };
 const knownTrades = new Map();
+const roomCache = new Map();
+const ROOM_CACHE_TTL_MS = 60_000;
+const ROOM_READ_CONCURRENCY = 16;
 let tradeHistorySeed = null;
 
 const contentTypes = {
@@ -78,6 +81,45 @@ async function readRoom(room, optional = false) {
   if (optional && response.status === 404) return { room, messages: [] };
   if (!response.ok) throw new Error(text || `Technocore returned ${response.status}.`);
   return JSON.parse(text);
+}
+
+async function readRoomExport(room) {
+  const response = await fetchWithTimeout(`${TECHNOCORE}/r/${encodeURIComponent(room)}/export`);
+  const text = await response.text();
+  if (!response.ok) throw new Error(text || `Technocore export returned ${response.status}.`);
+  const messages = [];
+  for (const line of text.split("\n")) {
+    try { messages.push(JSON.parse(line)); } catch {}
+  }
+  return { room, messages };
+}
+
+async function readCached(key, reader) {
+  const cached = roomCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+  const value = await reader();
+  roomCache.set(key, { value, expiresAt: Date.now() + ROOM_CACHE_TTL_MS });
+  return value;
+}
+
+function readCachedRoom(room) {
+  return readCached(`room:${room}`, () => readRoom(room, true));
+}
+
+function readCachedRoomExport(room) {
+  return readCached(`export:${room}`, () => readRoomExport(room));
+}
+
+async function mapConcurrent(values, concurrency, mapper) {
+  const results = new Array(values.length);
+  let nextIndex = 0;
+  await Promise.all(Array.from({ length: Math.min(concurrency, values.length) }, async () => {
+    while (nextIndex < values.length) {
+      const index = nextIndex++;
+      results[index] = await mapper(values[index]);
+    }
+  }));
+  return results;
 }
 
 function rememberTrade(message, record, room = ROOMS.trading) {
@@ -138,6 +180,10 @@ function collectFlowStatus(messages) {
       const room = Array.isArray(item) ? item[0] : item && typeof item === "object" ? item.room || item.name : item;
       if (typeof room === "string") registeredRooms.add(room);
     }
+    for (const item of record.unlisted || []) {
+      const room = Array.isArray(item) ? item[0] : item && typeof item === "object" ? item.room || item.name : item;
+      if (typeof room === "string") registeredRooms.delete(room);
+    }
   }
   return { settled, voided, minted, registeredRooms };
 }
@@ -149,21 +195,29 @@ function publicMessage(message) {
 async function buildSnapshot() {
   await seedTradeHistory();
   const officialRoomNames = [ROOMS.price, ROOMS.flow, ROOMS.state, ROOMS.positions, ROOMS.pnl];
-  const [tradingData, offerData, officialData, owners] = await Promise.all([
+  const [tradingData, offerData, officialData, owners, priceHistory] = await Promise.all([
     readRoom(ROOMS.trading),
     readRoom(ROOMS.offers, true),
-    Promise.all(officialRoomNames.map((room) => readRoom(room))),
+    Promise.all(officialRoomNames.map((room) => room === ROOMS.flow ? readCachedRoomExport(room) : readRoom(room))),
     Promise.all(officialRoomNames.map((room) => readOwner(room))),
+    readCachedRoomExport(ROOMS.price),
   ]);
   const tradingMessages = Array.isArray(tradingData.messages) ? tradingData.messages : [];
   const offerMessages = Array.isArray(offerData.messages) ? offerData.messages : [];
   const official = Object.fromEntries(officialRoomNames.map((room, index) => [room, verifiedOfficial(room, officialData[index])]));
   const priceMessage = lastRecord(official[ROOMS.price], "price");
-  const seedMessage = lastRecord(official[ROOMS.price], "seed");
+  const seedMessage = lastRecord(verifiedOfficial(ROOMS.price, priceHistory), "seed");
   const flowMessage = lastRecord(official[ROOMS.flow], "flow");
   const stateMessage = lastRecord(official[ROOMS.state], "state");
   const positionsMessage = lastRecord(official[ROOMS.positions], "positions");
   const pnlMessage = lastRecord(official[ROOMS.pnl], "pnl");
+  const flowStatus = collectFlowStatus(official[ROOMS.flow]);
+  const extraRoomNames = [...flowStatus.registeredRooms].filter((room) => (
+    room !== ROOMS.trading && room !== ROOMS.offers && !officialRoomNames.includes(room)
+  ));
+  const registeredRoomData = await mapConcurrent(extraRoomNames, ROOM_READ_CONCURRENCY, async (room) => {
+    try { return await readCachedRoom(room); } catch { return { room, messages: [] }; }
+  });
   const launchVerified = owners.every((owner) => owner === CONTEST.refereeDid)
     && seedMessage?.record?.season === CONTEST.id
     && seedMessage?.record?.package === CONTEST.manifestSha256
@@ -176,6 +230,7 @@ async function buildSnapshot() {
   const roomMessages = [
     ...tradingMessages.map((message) => ({ room: ROOMS.trading, message })),
     ...offerMessages.map((message) => ({ room: ROOMS.offers, message })),
+    ...registeredRoomData.flatMap(({ room, messages }) => messages.map((message) => ({ room, message }))),
   ];
   for (const { room, message } of roomMessages) {
     const record = parseRecord(message.text);
@@ -190,7 +245,6 @@ async function buildSnapshot() {
     }
   }
 
-  const flowStatus = collectFlowStatus(official[ROOMS.flow]);
   const tradedIds = new Set([
     ...knownTrades.keys(),
     ...discoveryTrades.map(({ record }) => record.terms.id),
@@ -293,6 +347,7 @@ async function postToTechnocore(room, body) {
   let data = text;
   try { data = JSON.parse(text); } catch { /* Keep upstream error text. */ }
   if (!response.ok) throw new Error(typeof data === "string" ? data : JSON.stringify(data));
+  roomCache.delete(`room:${room}`);
   snapshotCache.expiresAt = 0;
   return data;
 }
