@@ -41,7 +41,7 @@ const i18n = {
     registerFirst: "Önce DID'ini yarışmaya kaydet.", waitMint: "Kayıt gönderildi. Sonraki sweep'te 10.000 POLF tanımlanacak.", ready: "Hazır", notRegistered: "Kayıtlı değil", registrationUnknown: "Kayıt geçmişi eksik", registrationUnknownHelp: "Referee büyük mint listelerini public mesajlarda kısalttığı için eski kayıtlar tek tek doğrulanamıyor. Daha önce kaydolduysanız tekrar kayıt göndermeyin. Bu onay yalnızca arayüzü açar; resmî kararı referee verir.", registrationPosted: "Kayıt imzalandı. Sonraki sweep'i bekle.", registrationConfirmed: "Önceki kayıt bu tarayıcı için onaylandı.",
     offerPosted: "Tahmin yayımlandı. Karşı taraf imzaladığında resmî işlem oluşacak.", offerPostedRoomPending: "Tahmin yayımlandı. İşlem odası kaydı gönderildi; referee listeleyene kadar kabul için sonraki sweep'i bekleyin.", tradeRoomWaiting: "İşlem odası kaydı gönderildi. Referee odayı listeledikten sonra tahmini tekrar kabul edin.", tradePosted: "Karşı imza gönderildi. Referee sonucunu bekle.", ownOffer: "Kendi teklifini kabul edemezsin.", reservedOffer: "Bu teklif başka bir DID için ayrılmış.",
     invalidOffer: "Offer JSON veya maker imzası geçersiz.", outsideLimits: "Fiyat güncel resmî aralığın dışında.", expiredOffer: "Teklifin sweep süresi dolmuş.", copied: "İmzalı offer JSON kopyalandı.", copy: "Kopyala",
-    pending: "Bekliyor", settled: "Sonuçlandı", void: "Geçersiz", unreported: "Public özet dışında", publicSummaryOmitted: "Hakemin tam sonucu public özette yer almıyor", posted: "Gönderildi", publicTopOnly: "İlk 25 dışında", noPersonalCalls: "Aktif tahminin yok.", noPersonalTrades: "Henüz resmî işlemin yok.",
+    pending: "Hakem bekleniyor", settled: "Sonuçlandı", void: "Geçersiz", unreported: "Sonuç doğrulanamıyor", publicSummaryOmitted: "Hakem özeti bu işlem ID'sini içermiyor", unreportedHelp: "Bu, işlemin reddedildiği anlamına gelmez. Tam flow dosyası yayımlanmadığı için kesin sonuç ve skor hesaplanamaz. Tekrar gönderme.", reviewSweeps: "Kontrol edilen sweep", omittedCounts: "Özette gizlenen: {settled} sonuçlandı / {voided} geçersiz", flowCountTitle: "{shown} ID görünür, {hidden} ayrıntı özette yok", posted: "Gönderildi", publicTopOnly: "İlk 25 dışında", noPersonalCalls: "Aktif tahminin yok.", noPersonalTrades: "Henüz resmî işlemin yok.",
     sweepExpiry: "Sweep {n}'e kadar", updatedNow: "şimdi", minutesAgo: "{n} dk önce", secondsAgo: "{n} sn önce", priceRangeHint: "{low} ile {high} arasında olmalı", expiresAtSweep: "Sweep {n}",
     accountDataOfficial: "Skor ve pozisyon resmî referee listesinden geliyor. Bakiye, saklanan doğrulanmış işlemlerden hesaplanır.", accountDataEstimate: "≈ işaretli değerler saklanan doğrulanmış işlem geçmişinden hesaplanır; public referee özeti eksikse kesin bakiye değildir.",
     profitNow: "Şu an kazanıyor", lossNow: "Şu an kaybediyor", flatNow: "Şu an başa baş", wonFinal: "Kazandı", lostFinal: "Kaybetti", flatFinal: "Berabere", scoreImpact: "Canlı skor etkisi", finalScoreImpact: "Final skor etkisi", paidFee: "Ücret", settledAt: "Sweep #{n}", closeAt: "kapanış {n}", resultMoves: "Final NVDA fiyatına kadar değişir", resultFinal: "Final NVDA fiyatıyla kesinleşti", scoreZero: "Skor etkisi 0", sourceRoom: "/r/{room}",
@@ -67,7 +67,7 @@ const i18n = {
     keyLoaded: "DID imported.", invalidKey: "Choose a valid Technocore Ed25519 private-key JSON.", keyForgotten: "Private key removed from this tab.", refreshed: "Live data refreshed.", noOffers: "No acceptable open offers right now.", takeLong: "Take LONG", takeShort: "Take SHORT",
     connectToTake: "Connect a DID to accept.", registerFirst: "Register your DID in the contest first.", waitMint: "Registration posted. The next sweep will issue 10,000 POLF.", ready: "Ready", notRegistered: "Not registered", registrationUnknown: "Registration history incomplete", registrationUnknownHelp: "The referee truncates large mint lists in public messages, so older registrations cannot be checked individually. Do not register again if you already registered. This confirmation only unlocks the interface; the referee remains authoritative.", registrationPosted: "Registration signed. Wait for the next sweep.", registrationConfirmed: "Previous registration confirmed for this browser.",
     offerPosted: "Call published. It becomes an official trade when another DID signs.", offerPostedRoomPending: "Call published. Trading-room registration was sent; wait for the next sweep before acceptance.", tradeRoomWaiting: "Trading-room registration was sent. Accept the call again after the referee lists the room.", tradePosted: "Countersignature posted. Wait for the referee result.", ownOffer: "You cannot take your own offer.", reservedOffer: "This offer is reserved for another DID.", invalidOffer: "Offer JSON or maker signature is invalid.",
-    outsideLimits: "Price is outside the current official range.", expiredOffer: "The offer has expired by sweep.", copied: "Signed offer JSON copied.", copy: "Copy", pending: "Pending", settled: "Settled", void: "Void", unreported: "Outside public summary", publicSummaryOmitted: "The referee's full result is not present in the public summary", posted: "Posted", publicTopOnly: "Outside public top 25",
+    outsideLimits: "Price is outside the current official range.", expiredOffer: "The offer has expired by sweep.", copied: "Signed offer JSON copied.", copy: "Copy", pending: "Waiting for referee", settled: "Settled", void: "Void", unreported: "Outcome unavailable", publicSummaryOmitted: "The referee summary does not include this trade ID", unreportedHelp: "This does not mean the trade was rejected. The exact result and score cannot be calculated until the full flow file is published. Do not resubmit it.", reviewSweeps: "Sweeps checked", omittedCounts: "Hidden by summary: {settled} settled / {voided} void", flowCountTitle: "{shown} IDs visible, {hidden} details omitted", posted: "Posted", publicTopOnly: "Outside public top 25",
     noPersonalCalls: "You have no active calls.", noPersonalTrades: "You have no official trades yet.", sweepExpiry: "Until sweep {n}", updatedNow: "now", minutesAgo: "{n}m ago", secondsAgo: "{n}s ago", priceRangeHint: "Must be between {low} and {high}", expiresAtSweep: "Sweep {n}",
     accountDataOfficial: "Score and position come from the official referee list. Balance is calculated from retained verified trades.", accountDataEstimate: "Values marked ≈ are calculated from retained verified trade history; they are not exact when the public referee summary is incomplete.",
     profitNow: "Winning now", lossNow: "Losing now", flatNow: "Break-even now", wonFinal: "Won", lostFinal: "Lost", flatFinal: "Tied", scoreImpact: "Live score impact", finalScoreImpact: "Final score impact", paidFee: "Fee", settledAt: "Sweep #{n}", closeAt: "close {n}", resultMoves: "Changes until the final NVDA price", resultFinal: "Final at the closing NVDA price", scoreZero: "Score impact 0", sourceRoom: "/r/{room}",
@@ -382,8 +382,14 @@ function renderMetrics() {
   $("#nextLimits").textContent = limits.length === 2 ? `$${limits[0]} — $${limits[1]}` : "-";
   $("#longAccounts").textContent = market.positions?.longs ?? "-";
   $("#shortAccounts").textContent = market.positions?.shorts ?? "-";
-  $("#settledLast").textContent = Array.isArray(market.flow?.settled) ? market.flow.settled.length : "-";
-  $("#voidLast").textContent = Array.isArray(market.flow?.void) ? market.flow.void.length : "-";
+  const settledShown = Array.isArray(market.flow?.settled) ? market.flow.settled.length : 0;
+  const voidShown = Array.isArray(market.flow?.void) ? market.flow.void.length : 0;
+  const settledHidden = Number(market.flow?.omitted?.settled || 0);
+  const voidHidden = Number(market.flow?.omitted?.void || 0);
+  $("#settledLast").textContent = market.flow ? String(settledShown + settledHidden) : "-";
+  $("#settledLast").title = settledHidden ? t("flowCountTitle", { shown: settledShown, hidden: settledHidden }) : "";
+  $("#voidLast").textContent = market.flow ? String(voidShown + voidHidden) : "-";
+  $("#voidLast").title = voidHidden ? t("flowCountTitle", { shown: voidShown, hidden: voidHidden }) : "";
   $("#lastUpdated").textContent = state.snapshot ? relativeTime(state.snapshot.generatedAt) : "-";
   $("#rangeLow").textContent = limits[0] || "-";
   $("#rangeCurrent").textContent = ref || "-";
@@ -487,6 +493,15 @@ function tradeResult(trade) {
     return `<div class="trade-result"><span class="trade-outcome void">${t("void")}</span><strong>${t("scoreZero")}</strong></div>`;
   }
   if (status !== "settled" || !metrics || metrics.scoreDelta === null) {
+    if (status === "unreported") {
+      const sweeps = (trade.reviewSweeps || []).map((n) => `#${n}`).join("–");
+      return `<div class="trade-result unresolved">
+        <span class="trade-outcome unreported">${t("unreported")}</span>
+        <strong>${t("unreportedHelp")}</strong>
+        ${sweeps ? `<small>${t("reviewSweeps")}: ${sweeps}</small>` : ""}
+        <small>${t("omittedCounts", { settled: trade.omittedSettled || 0, voided: trade.omittedVoid || 0 })}</small>
+      </div>`;
+    }
     return `<span class="trade-status ${status}">${t(status)}</span>`;
   }
   const label = metrics.result === "profit"

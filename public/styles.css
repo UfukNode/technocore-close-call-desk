@@ -243,6 +243,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); box-shad
 .trade-outcome.profit { background: var(--green-deep); color: var(--green); }
 .trade-outcome.loss, .trade-outcome.void { background: var(--red-deep); color: var(--red); }
 .trade-outcome.flat { background: var(--surface-3); color: var(--muted); }
+.trade-outcome.unreported { background: #2a2418; color: var(--amber); }
+.trade-result.unresolved { max-width: 290px; }
+.trade-result.unresolved strong { color: var(--amber); font-weight: 500; line-height: 1.45; }
 .import-panel { display: grid; grid-template-columns: 220px minmax(0, 1fr) auto; gap: 14px; align-items: center; margin-top: 18px; padding: 16px; }
 .import-panel h2 { margin-bottom: 5px; }
 .import-panel p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.5; }

@@ -101,7 +101,22 @@ test("maker-signed offers from another tool are normalized and indexed", () => {
 
 test("omitted referee results are not presented as definitely pending", () => {
   const history = createHistory();
-  history.flow.omittedSettled = 1;
+  history.flow.sweeps.set(3, {
+    n: 3,
+    ts: "2026-09-25T12:15:00.000Z",
+    settledIds: [],
+    voidIds: [],
+    omittedSettled: 8,
+    omittedVoid: 2,
+  });
+  history.flow.sweeps.set(4, {
+    n: 4,
+    ts: "2026-09-25T12:20:00.000Z",
+    settledIds: [],
+    voidIds: [],
+    omittedSettled: 4,
+    omittedVoid: 1,
+  });
   history.flow.latestTs = "2026-09-25T12:20:00.000Z";
   const trade = {
     ts: "2026-09-25T12:10:00.000Z",
@@ -110,5 +125,37 @@ test("omitted referee results are not presented as definitely pending", () => {
   assert.deepEqual(statusForTrade(history, trade), {
     status: "unreported",
     reason: "public_summary_omitted",
+    reviewSweeps: [3, 4],
+    omittedSettled: 12,
+    omittedVoid: 3,
   });
+});
+
+test("omissions from older sweeps do not hide a newer trade", () => {
+  const history = createHistory();
+  history.flow.sweeps.set(1, {
+    n: 1,
+    ts: "2026-09-25T12:05:00.000Z",
+    omittedSettled: 50,
+    omittedVoid: 10,
+  });
+  history.flow.sweeps.set(4, {
+    n: 4,
+    ts: "2026-09-25T12:20:00.000Z",
+    omittedSettled: 0,
+    omittedVoid: 0,
+  });
+  history.flow.sweeps.set(5, {
+    n: 5,
+    ts: "2026-09-25T12:25:00.000Z",
+    omittedSettled: 0,
+    omittedVoid: 0,
+  });
+  history.flow.latestTs = "2026-09-25T12:25:00.000Z";
+  const trade = {
+    ts: "2026-09-25T12:15:00.000Z",
+    record: { terms: { id: "new-call" } },
+  };
+
+  assert.deepEqual(statusForTrade(history, trade), { status: "pending", reason: "" });
 });
