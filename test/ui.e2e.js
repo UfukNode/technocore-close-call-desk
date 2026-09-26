@@ -47,11 +47,23 @@ const SNAPSHOT = {
   visibility: { registrationIncomplete: false, omittedMints: 0, offerRoom: "close1-offers", offerRoomRegistered: true },
 };
 
-async function mockSnapshot(page, snapshot = SNAPSHOT) {
+async function mockSnapshot(page, snapshot = SNAPSHOT, identityOverride = null) {
   await page.route("**/api/snapshot*", (route) => route.fulfill({
     contentType: "application/json",
     body: JSON.stringify({ ok: true, data: snapshot }),
   }));
+  await page.route("**/api/identity*", (route) => {
+    const did = new URL(route.request().url()).searchParams.get("did");
+    const identity = identityOverride || {
+      did,
+      registration: snapshot.registrations.find((item) => item.did === did) || null,
+      minted: snapshot.minted.includes(did),
+      offers: snapshot.offers.filter(({ record }) => record.terms.maker === did),
+      trades: snapshot.trades.filter(({ record }) => record.terms.maker === did || record.taker === did),
+      historyIncomplete: snapshot.visibility.registrationIncomplete,
+    };
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ ok: true, data: identity }) });
+  });
 }
 
 async function importKey(page, key) {
@@ -180,4 +192,86 @@ test("keeps an accepted trade on the desk when close1 traffic buries it", async 
   await expect(page.locator("#myTrades")).toContainText(terms.id);
   await page.locator('[data-view-target="market"]').click();
   await expect(page.locator(`[data-take="${terms.id}"]`)).toHaveCount(0);
+});
+
+test("restores a maker's accepted trade from DID history after import", async ({ page }) => {
+  const maker = testKeyFile();
+  const taker = testKeyFile();
+  const terms = { id: "maker-history-1", maker: maker.did, px: "225.67", qty: "1", side: "sell", taker: "any", until: 9 };
+  const trade = {
+    t: "trade",
+    season: "close-1",
+    terms,
+    taker: taker.did,
+    maker_sig: maker.sign(`close-1|terms|${JSON.stringify(terms)}`),
+    taker_sig: taker.sign(`close-1|accept|${JSON.stringify(terms)}|${taker.did}`),
+  };
+  await mockSnapshot(page, SNAPSHOT, {
+    did: maker.did,
+    registration: { did: maker.did, ts: "2026-09-25T12:05:00.000Z", room: "close1" },
+    minted: true,
+    offers: [],
+    trades: [{ record: trade, status: "settled", reason: "", ts: "2026-09-25T12:09:00.000Z" }],
+    historyIncomplete: true,
+  });
+
+  await page.goto("/");
+  await importKey(page, maker);
+  await page.locator('[data-view-target="desk"]').click();
+  await expect(page.locator("#registrationStatus")).toContainText(/Hazır|Ready/);
+  await expect(page.locator("#myTrades")).toContainText(terms.id);
+  await expect(page.locator("#myTrades")).toContainText(/Sonuçlandı|Settled/);
+});
+
+test("shows retained balance and live score impact for a settled trade", async ({ page }) => {
+  const maker = testKeyFile();
+  const taker = testKeyFile();
+  const terms = { id: "scored-call-1", maker: maker.did, px: "220.00", qty: "1", side: "buy", taker: "any", until: 9 };
+  const trade = {
+    t: "trade",
+    season: "close-1",
+    terms,
+    taker: taker.did,
+    maker_sig: maker.sign(`close-1|terms|${JSON.stringify(terms)}`),
+    taker_sig: taker.sign(`close-1|accept|${JSON.stringify(terms)}|${taker.did}`),
+  };
+  const readySnapshot = {
+    ...SNAPSHOT,
+    registrations: [{ did: maker.did, ts: "2026-09-25T12:05:00.000Z" }],
+    minted: [maker.did],
+  };
+  await mockSnapshot(page, readySnapshot, {
+    did: maker.did,
+    registration: readySnapshot.registrations[0],
+    minted: true,
+    offers: [],
+    trades: [{
+      record: trade,
+      status: "settled",
+      reason: "",
+      ts: "2026-09-25T12:09:00.000Z",
+      metrics: { settledSweep: 2, settlementPrice: 225, fee: 2.2, estimatedFee: false, scoreDelta: 3.47, result: "profit" },
+    }],
+    account: {
+      available: 9777.8,
+      collateral: 220,
+      position: 1,
+      score: 3.47,
+      officialPosition: null,
+      officialScore: null,
+      scoreSource: "retained_history",
+      balanceSource: "retained_history",
+      incomplete: false,
+    },
+    historyIncomplete: false,
+  });
+
+  await page.goto("/");
+  await importKey(page, maker);
+  await page.locator('[data-view-target="desk"]').click();
+  await expect(page.locator("#currentBalance")).toContainText("9");
+  await expect(page.locator("#tiedCollateral")).toContainText("220");
+  await expect(page.locator("#myScore")).toContainText("3");
+  await expect(page.locator("#myTrades")).toContainText(/Şu an kazanıyor|Winning now/);
+  await expect(page.locator("#myTrades")).toContainText(/Canlı skor etkisi|Live score impact/);
 });

@@ -127,6 +127,8 @@ Oluşturduğunuz tahmin önce imzalı bir tekliftir. Başka bir DID karşı tara
 
 Araç yeni imzalı tahminleri kayıt trafiğinde hemen kaybolmamaları için `close1-offers` odasında yayımlar. İlk kabulden önce resmî `room` kaydını `close1` üzerinden gönderir. Referee `close1-offers` odasını listeledikten sonra iki tarafın imzaladığı resmî trade bu düşük trafikli odaya gönderilir. Araç beklemenizi söylerse sonraki sweep'ten sonra yenileyip tekrar kabul edin.
 
+**Açık tahminler** bölümü `close1`, `close1-offers` ve referee'nin kaydettiği erişilebilir public işlem odalarını tarar. Başka toollardan gelen uyumlu teklifler, hem Technocore oda imzası hem de maker imzası doğrulanırsa burada görünür. Resmî protokolde bütün interneti kapsayan ortak bir emir defteri yine yoktur; özel anlaşmalar ile bilinmeyen veya geçmişi silinmiş odalardaki teklifler bulunamaz.
+
 > [!CAUTION]
 > Resmî protokolde yayımlanan açık teklif için iptal mesajı yoktur. Bu nedenle ihtiyacınız kadar kısa teklif süresi seçin.
 
@@ -163,6 +165,11 @@ Kendi tahmininizi aynı DID ile kabul edemezsiniz. İşlem için iki farklı, ka
 | Bekliyor | İki imza var, referee sweep sonucu bekleniyor |
 | Sonuçlandı | Referee işlemi kabul edip pozisyona ekledi |
 | Geçersiz | Referee işlemi kurallara uygun bulmadı |
+| Public özet dışında | Public flow mesajı kısaltıldığı için kesin sonuç eldeki public veriden doğrulanamıyor |
+
+**İşlemlerim** alanında sonuçlanan işlem için sizin LONG/SHORT yönünüz, işlemin sonuçlandığı sweep, ödediğiniz ücret, işlemin o an kazançta mı kayıpta mı olduğu ve canlı skora etkisi gösterilir. Final NVDA fiyatı açıklanana kadar kazanç/kayıp ve skor etkisi değişebilir.
+
+**Masam** alanı DID'iniz resmî sıralama listesinde bulunuyorsa referee'nin imzalı skor ve pozisyonunu kullanır. Kullanılabilir bakiye, bağlı teminat ve başında `≈` bulunan değerler ise saklanan doğrulanmış işlemler resmî ücret/clawback kuralıyla tekrar yürütülerek hesaplanır. Public referee özeti eski işlem kimliklerini atlayabildiği için bu hesaplar resmî değer yerine geçiyormuş gibi gösterilmez.
 
 Sayfa canlı verileri düzenli olarak yeniler. İsterseniz sağ üstteki yenileme simgesine de basabilirsiniz.
 
@@ -191,6 +198,10 @@ Tahmin fiyatı referee tarafından paylaşılan güncel `±%5` aralığında olm
 
 Tahmininize başka bir kayıtlı DID karşı imza atmalıdır. Ardından referee'nin sonraki sweep'te işlemi sonuçlandırması gerekir.
 
+### İşlemde `Public özet dışında` yazıyor
+
+Bir sweep'in tam sonucu Technocore mesaj sınırını aşarsa referee public mesajda bazı işlem kimliklerini listelemez, yalnızca kaç sonucun dışarıda kaldığını bildirir. Tool tahmin yürütmez; imzalı işlemi göstermeye devam eder fakat kesin sonucu mevcut public özetten doğrulayamadığını belirtir.
+
 ### `npm start` sonrası sayfa açılmıyor
 
 Terminalde yazan adresi kontrol edin. `5192` doluysa uygulama bir sonraki boş portta açılır. Komutun çalıştığı terminali kapatmayın.
@@ -218,7 +229,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Testler canonical imzaları, teklif doğrulamasını, canlı referee verisini, mobil tasarımı ve DID'in tahmin ekranında doğru görünmesini kontrol eder.
+Testler canonical imzaları, başka tool tekliflerinin güvenli şekilde normalleştirilmesini, resmî ücret/skor hesabını, canlı referee verisini, mobil tasarımı ve DID'in tahmin ekranında doğru görünmesini kontrol eder.
 
 ## Resmî Bağlantılar
 

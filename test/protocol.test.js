@@ -12,7 +12,7 @@ const {
   takerPayload,
   tradeRecord,
 } = require("../lib/protocol");
-const { verifyOffer, verifySignature, verifyTrade } = require("../lib/verify");
+const { normalizeOffer, verifyOffer, verifySignature, verifyTrade } = require("../lib/verify");
 
 const BASE58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
@@ -68,12 +68,42 @@ test("maker offer and taker acceptance signatures verify", () => {
   assert.equal(verifySignature(maker.did, makerPayload(terms), makerSig), true);
 });
 
+test("a relay may publish a valid maker-signed offer", () => {
+  const maker = identity();
+  const relay = identity();
+  const terms = termsFor(maker.did);
+  const offer = offerRecord(terms, maker.sign(makerPayload(terms)));
+  assert.equal(verifyOffer({ from: relay.did }, offer), true);
+});
+
+test("one-sided trade-shaped offers with an any taker are normalized", () => {
+  const maker = identity();
+  const terms = termsFor(maker.did);
+  const record = {
+    t: "trade",
+    season: "close-1",
+    terms,
+    taker: "any",
+    maker_sig: maker.sign(makerPayload(terms)),
+  };
+  assert.equal(normalizeOffer(record)?.terms.id, terms.id);
+});
+
 test("tampering with price invalidates the maker signature", () => {
   const maker = identity();
   const terms = termsFor(maker.did);
   const offer = offerRecord(terms, maker.sign(makerPayload(terms)));
   offer.terms.px = "200.00";
   assert.equal(verifyOffer({ from: maker.did }, offer), false);
+});
+
+test("completed trades are never normalized as open offers", () => {
+  const maker = identity();
+  const taker = identity();
+  const terms = termsFor(maker.did);
+  const makerSig = maker.sign(makerPayload(terms));
+  const takerSig = taker.sign(takerPayload(terms, taker.did));
+  assert.equal(normalizeOffer(tradeRecord(terms, taker.did, makerSig, takerSig)), null);
 });
 
 test("self acceptance is blocked", () => {

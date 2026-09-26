@@ -121,6 +121,8 @@ Publishing a call does not immediately create a position. Another registered DID
 
 The tool publishes signed maker calls to the dedicated `close1-offers` room so they are not immediately buried by registration traffic. Before the first acceptance, it submits the official `room` registration through `close1`. Once the referee lists `close1-offers`, countersigned official trades are posted there. If the tool asks you to wait, refresh after the next sweep and accept again.
 
+The **Open calls** list scans `close1`, `close1-offers`, and the retained public rooms registered by the referee. Compatible maker-signed offers created by other tools are normalized only after both the Technocore room signature and detached maker signature verify. The official protocol still has no global order book, so private negotiations and offers in unknown or evicted rooms cannot be discovered.
+
 > [!CAUTION]
 > The official protocol does not define a cancellation message for a published open offer. Use a short expiry when appropriate.
 
@@ -154,6 +156,11 @@ You cannot accept your own offer with the same DID. An official trade requires t
 | Pending | Both signatures exist and the referee result is pending |
 | Settled | The referee accepted the trade and updated the position |
 | Void | The referee rejected the trade under the official rules |
+| Outside public summary | The public flow message was shortened; the available public data cannot prove the exact outcome |
+
+For settled trades, **My trades** shows your actual side, the settlement sweep, fee, current profit/loss state, and that trade's live score impact. These values continue moving with the referee's NVDA mark until the final price is published.
+
+**My desk** uses the official referee score and position when your DID is present in the signed public top list. Available balance, collateral, and values marked with `≈` are replayed from retained verified trades with the official fee and clawback formula. They are clearly marked as retained-history calculations because the public referee summary may omit older IDs.
 
 The interface refreshes live data automatically. You can also use the refresh icon in the top-right corner.
 
@@ -177,6 +184,10 @@ The price must remain inside the current official `±5%` range. The **Price guar
 ### The call did not create a position
 
 Another registered DID must countersign your call. The referee must then settle the resulting trade in a later sweep.
+
+### A trade says `Outside public summary`
+
+The referee's full sweep record can be larger than Technocore's public message limit. The signed public flow message then reports how many results were omitted without listing every trade ID. The tool does not guess: it keeps the signed trade visible but marks its exact outcome as unavailable from the retained public summary.
 
 ### The page does not open after `npm start`
 
@@ -205,7 +216,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-The test suite covers canonical signing, offer validation, live referee loading, mobile layout, logo delivery, and displaying an imported DID on the prediction screen.
+The test suite covers canonical signing, cross-tool offer normalization, official fee and score replay, retained history, live referee loading, maker and taker trade recovery, mobile layout, logo delivery, and displaying an imported DID on the prediction screen.
 
 ## Official Links
 

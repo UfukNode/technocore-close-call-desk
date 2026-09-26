@@ -166,6 +166,7 @@ button:disabled, .button.disabled { cursor: not-allowed; opacity: .42; }
 .trade-status { padding: 3px 6px; border-radius: 2px; background: var(--surface-3); color: var(--muted); font-family: ui-monospace, monospace; font-size: 8px; text-transform: uppercase; }
 .trade-status.settled { background: var(--green-deep); color: var(--green); }
 .trade-status.void { background: var(--red-deep); color: var(--red); }
+.trade-status.unreported { background: #2a2418; color: var(--amber); }
 
 .trade-layout { display: grid; grid-template-columns: minmax(0, 720px) 310px; gap: 18px; align-items: start; }
 .ticket-panel { padding: 20px; }
@@ -220,11 +221,12 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); box-shad
 .plain-rule > span { width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid var(--line-strong); color: var(--green); font-family: ui-monospace, monospace; font-size: 9px; }
 .plain-rule p { margin: 3px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
 
-.account-strip { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.account-strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .account-strip div { min-height: 76px; display: flex; flex-direction: column; justify-content: center; padding: 10px 16px; border-right: 1px solid var(--line); }
 .account-strip div:last-child { border-right: 0; }
 .account-strip span { color: var(--muted); font-size: 9px; }
 .account-strip strong { margin-top: 7px; font-family: ui-monospace, monospace; font-size: 12px; }
+.account-data-note { margin: 8px 0 0; color: var(--muted); font-family: ui-monospace, monospace; font-size: 9px; line-height: 1.55; }
 .desk-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
 .desk-list { min-height: 190px; }
 .desk-row { min-height: 56px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; padding: 9px 14px; border-bottom: 1px solid #202b30; }
@@ -233,6 +235,14 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); box-shad
 .desk-row strong { font-size: 11px; }
 .desk-row code { margin-top: 3px; color: var(--muted); font-size: 9px; }
 .desk-row button { height: 30px; }
+.trade-result { min-width: 178px; text-align: right; }
+.trade-result strong, .trade-result small { display: block; }
+.trade-result strong { margin-top: 5px; font-size: 9px; }
+.trade-result small { margin-top: 3px; color: var(--muted); font-size: 8px; }
+.trade-outcome { display: inline-block; padding: 3px 6px; border-radius: 2px; font-family: ui-monospace, monospace; font-size: 8px; text-transform: uppercase; }
+.trade-outcome.profit { background: var(--green-deep); color: var(--green); }
+.trade-outcome.loss, .trade-outcome.void { background: var(--red-deep); color: var(--red); }
+.trade-outcome.flat { background: var(--surface-3); color: var(--muted); }
 .import-panel { display: grid; grid-template-columns: 220px minmax(0, 1fr) auto; gap: 14px; align-items: center; margin-top: 18px; padding: 16px; }
 .import-panel h2 { margin-bottom: 5px; }
 .import-panel p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
@@ -263,6 +273,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); box-shad
 .toast.show { opacity: 1; transform: translateY(0); }
 
 @media (max-width: 1050px) {
+  .account-strip { grid-template-columns: repeat(3, 1fr); }
+  .account-strip div:nth-child(3) { border-right: 0; }
+  .account-strip div:nth-child(-n+3) { border-bottom: 1px solid var(--line); }
   .ticker-band { grid-template-columns: repeat(3, 1fr); }
   .ticker-band > div:nth-child(3) { border-right: 0; }
   .ticker-band > div:nth-child(n+4) { border-top: 1px solid var(--line); }
@@ -300,6 +313,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--green); box-shad
   .form-grid, .direction-control, .order-preview, .account-strip, .desk-layout, .rules-grid { grid-template-columns: 1fr; }
   .order-preview div, .account-strip div { border-right: 0; border-bottom: 1px solid var(--line); }
   .order-preview div:last-child, .account-strip div:last-child { border-bottom: 0; }
+  .account-strip div:nth-child(3) { border-right: 0; }
+  .trade-history-row { align-items: start; }
+  .trade-result { min-width: 0; }
   .import-panel { grid-template-columns: 1fr; }
   .signer-bar { grid-template-columns: 36px minmax(0, 1fr); }
   .signer-bar > img { width: 36px; height: 36px; }
