@@ -41,6 +41,7 @@ const i18n = {
     registerFirst: "Önce DID'ini yarışmaya kaydet.", waitMint: "Kayıt gönderildi. Sonraki sweep'te 10.000 POLF tanımlanacak.", ready: "Hazır", notRegistered: "Kayıtlı değil", registrationUnknown: "Kayıt geçmişi eksik", registrationUnknownHelp: "Referee büyük mint listelerini public mesajlarda kısalttığı için eski kayıtlar tek tek doğrulanamıyor. Daha önce kaydolduysanız tekrar kayıt göndermeyin. Bu onay yalnızca arayüzü açar; resmî kararı referee verir.", registrationPosted: "Kayıt imzalandı. Sonraki sweep'i bekle.", registrationConfirmed: "Önceki kayıt bu tarayıcı için onaylandı.",
     offerPosted: "Tahmin yayımlandı. Karşı taraf imzaladığında resmî işlem oluşacak.", offerPostedRoomPending: "Tahmin yayımlandı. İşlem odası kaydı gönderildi; referee listeleyene kadar kabul için sonraki sweep'i bekleyin.", tradeRoomWaiting: "İşlem odası kaydı gönderildi. Referee odayı listeledikten sonra tahmini tekrar kabul edin.", tradePosted: "Karşı imza gönderildi. Referee sonucunu bekle.", ownOffer: "Kendi teklifini kabul edemezsin.", reservedOffer: "Bu teklif başka bir DID için ayrılmış.",
     invalidOffer: "Offer JSON veya maker imzası geçersiz.", outsideLimits: "Fiyat güncel resmî aralığın dışında.", expiredOffer: "Teklifin sweep süresi dolmuş.", copied: "İmzalı offer JSON kopyalandı.", copy: "Kopyala",
+    priorSettlementUnresolved: "Bu ID için önceki bir işlem sonuçlandırılmış, ancak kabul edilen kopya elde yok. Pozisyon ve skor etkisi bilinmiyor; yeniden gönderme.",
     pending: "Hakem bekleniyor", settled: "Sonuçlandı", void: "Geçersiz", unreported: "Sonuç doğrulanamıyor", publicSummaryOmitted: "Hakem özeti bu işlem ID'sini içermiyor", unreportedHelp: "Bu, işlemin reddedildiği anlamına gelmez. Tam flow dosyası yayımlanmadığı için kesin sonuç ve skor hesaplanamaz. Tekrar gönderme.", reviewSweeps: "Kontrol edilen sweep", omittedCounts: "Özette gizlenen: {settled} sonuçlandı / {voided} geçersiz", flowCountTitle: "{shown} ID görünür, {hidden} ayrıntı özette yok", posted: "Gönderildi", publicTopOnly: "İlk 25 dışında", noPersonalCalls: "Aktif tahminin yok.", noPersonalTrades: "Henüz resmî işlemin yok.",
     sweepExpiry: "Sweep {n}'e kadar", updatedNow: "şimdi", minutesAgo: "{n} dk önce", secondsAgo: "{n} sn önce", priceRangeHint: "{low} ile {high} arasında olmalı", expiresAtSweep: "Sweep {n}",
     accountDataOfficial: "Skor ve pozisyon resmî referee listesinden geliyor. Bakiye, saklanan doğrulanmış işlemlerden hesaplanır.", accountDataEstimate: "≈ işaretli değerler saklanan doğrulanmış işlem geçmişinden hesaplanır; public referee özeti eksikse kesin bakiye değildir.",
@@ -67,6 +68,7 @@ const i18n = {
     keyLoaded: "DID imported.", invalidKey: "Choose a valid Technocore Ed25519 private-key JSON.", keyForgotten: "Private key removed from this tab.", refreshed: "Live data refreshed.", noOffers: "No acceptable open offers right now.", takeLong: "Take LONG", takeShort: "Take SHORT",
     connectToTake: "Connect a DID to accept.", registerFirst: "Register your DID in the contest first.", waitMint: "Registration posted. The next sweep will issue 10,000 POLF.", ready: "Ready", notRegistered: "Not registered", registrationUnknown: "Registration history incomplete", registrationUnknownHelp: "The referee truncates large mint lists in public messages, so older registrations cannot be checked individually. Do not register again if you already registered. This confirmation only unlocks the interface; the referee remains authoritative.", registrationPosted: "Registration signed. Wait for the next sweep.", registrationConfirmed: "Previous registration confirmed for this browser.",
     offerPosted: "Call published. It becomes an official trade when another DID signs.", offerPostedRoomPending: "Call published. Trading-room registration was sent; wait for the next sweep before acceptance.", tradeRoomWaiting: "Trading-room registration was sent. Accept the call again after the referee lists the room.", tradePosted: "Countersignature posted. Wait for the referee result.", ownOffer: "You cannot take your own offer.", reservedOffer: "This offer is reserved for another DID.", invalidOffer: "Offer JSON or maker signature is invalid.",
+    priorSettlementUnresolved: "An earlier trade with this ID settled, but the accepted copy is unavailable. Position and score impact are unknown; do not resubmit.",
     outsideLimits: "Price is outside the current official range.", expiredOffer: "The offer has expired by sweep.", copied: "Signed offer JSON copied.", copy: "Copy", pending: "Waiting for referee", settled: "Settled", void: "Void", unreported: "Outcome unavailable", publicSummaryOmitted: "The referee summary does not include this trade ID", unreportedHelp: "This does not mean the trade was rejected. The exact result and score cannot be calculated until the full flow file is published. Do not resubmit it.", reviewSweeps: "Sweeps checked", omittedCounts: "Hidden by summary: {settled} settled / {voided} void", flowCountTitle: "{shown} IDs visible, {hidden} details omitted", posted: "Posted", publicTopOnly: "Outside public top 25",
     noPersonalCalls: "You have no active calls.", noPersonalTrades: "You have no official trades yet.", sweepExpiry: "Until sweep {n}", updatedNow: "now", minutesAgo: "{n}m ago", secondsAgo: "{n}s ago", priceRangeHint: "Must be between {low} and {high}", expiresAtSweep: "Sweep {n}",
     accountDataOfficial: "Score and position come from the official referee list. Balance is calculated from retained verified trades.", accountDataEstimate: "Values marked ≈ are calculated from retained verified trade history; they are not exact when the public referee summary is incomplete.",
@@ -412,7 +414,9 @@ function offerDirection(record, takerView = false) {
 }
 
 function reasonLabel(reason) {
-  return reason === "public_summary_omitted" ? t("publicSummaryOmitted") : reason;
+  if (reason === "public_summary_omitted") return t("publicSummaryOmitted");
+  if (reason === "prior_settlement_unresolved") return t("priorSettlementUnresolved");
+  return reason;
 }
 
 function renderOffers() {
@@ -497,9 +501,9 @@ function tradeResult(trade) {
       const sweeps = (trade.reviewSweeps || []).map((n) => `#${n}`).join("–");
       return `<div class="trade-result unresolved">
         <span class="trade-outcome unreported">${t("unreported")}</span>
-        <strong>${t("unreportedHelp")}</strong>
+        <strong>${trade.reason === "prior_settlement_unresolved" ? t("priorSettlementUnresolved") : t("unreportedHelp")}</strong>
         ${sweeps ? `<small>${t("reviewSweeps")}: ${sweeps}</small>` : ""}
-        <small>${t("omittedCounts", { settled: trade.omittedSettled || 0, voided: trade.omittedVoid || 0 })}</small>
+        ${trade.reason === "public_summary_omitted" ? `<small>${t("omittedCounts", { settled: trade.omittedSettled || 0, voided: trade.omittedVoid || 0 })}</small>` : ""}
       </div>`;
     }
     return `<span class="trade-status ${status}">${t(status)}</span>`;
