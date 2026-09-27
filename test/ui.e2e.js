@@ -352,3 +352,55 @@ test("shows omitted referee details as unknown instead of void", async ({ page }
   await expect(page.locator("#myTrades")).not.toContainText(/Skor etkisi 0|Score impact 0/);
   await expect(page.locator("#myTrades")).not.toContainText(/^Geçersiz$|^Void$/);
 });
+
+test("keeps a settled-ID rejection uncertain when the accepted copy is unavailable", async ({ page }) => {
+  const maker = testKeyFile();
+  const taker = testKeyFile();
+  const terms = { id: "duplicate-settled-1", maker: maker.did, px: "225.67", qty: "1", side: "buy", taker: "any", until: 350 };
+  const trade = {
+    t: "trade",
+    season: "close-1",
+    terms,
+    taker: taker.did,
+    maker_sig: maker.sign(`close-1|terms|${JSON.stringify(terms)}`),
+    taker_sig: taker.sign(`close-1|accept|${JSON.stringify(terms)}|${taker.did}`),
+  };
+  const readySnapshot = {
+    ...SNAPSHOT,
+    registrations: [{ did: maker.did, ts: "2026-09-25T12:05:00.000Z" }],
+    minted: [maker.did],
+  };
+  await mockSnapshot(page, readySnapshot, {
+    did: maker.did,
+    registration: readySnapshot.registrations[0],
+    minted: true,
+    offers: [],
+    trades: [{
+      record: trade,
+      status: "unreported",
+      reason: "prior_settlement_unresolved",
+      ts: "2026-09-26T18:00:00.000Z",
+      metrics: null,
+    }],
+    account: {
+      available: 10000,
+      collateral: 0,
+      position: 0,
+      score: 0,
+      officialPosition: null,
+      officialScore: null,
+      scoreSource: "retained_history",
+      balanceSource: "retained_history",
+      incomplete: true,
+    },
+    historyIncomplete: true,
+  });
+
+  await page.goto("/");
+  await importKey(page, maker);
+  await page.locator('[data-view-target="desk"]').click();
+  await expect(page.locator("#myTrades")).toContainText(/Sonuç doğrulanamıyor|Outcome unavailable/);
+  await expect(page.locator("#myTrades")).toContainText(/Pozisyon ve skor etkisi bilinmiyor|Position and score impact are unknown/);
+  await expect(page.locator("#myTrades")).not.toContainText(/Özette gizlenen|Hidden by summary/);
+  await expect(page.locator("#myTrades")).not.toContainText(/^Geçersiz$|^Void$/);
+});
