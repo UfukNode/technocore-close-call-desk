@@ -98,6 +98,21 @@ test("mobile navigation and prediction ticket work", async ({ page }) => {
   expect(overflow).toBeLessThanOrEqual(1);
 });
 
+test("uses an n-shaped referee price record to target the next sweep", async ({ page }) => {
+  const snapshot = {
+    ...SNAPSHOT,
+    market: {
+      ...SNAPSHOT.market,
+      price: { t: "price", n: 347, ref: { px: "225.67" }, limits: ["214.39", "236.95"], global: "225.67" },
+    },
+  };
+  await mockSnapshot(page, snapshot);
+  await page.goto("/");
+  await expect(page.locator("#sweepNumber")).toHaveText("348");
+  await page.locator('[data-view-target="predict"]').click();
+  await expect(page.locator("#expiryHelp")).toContainText("354");
+});
+
 test("imports a key locally without posting and enables registration", async ({ page }) => {
   const key = testKeyFile();
   await mockSnapshot(page);

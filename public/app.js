@@ -328,7 +328,15 @@ function marketPrice() {
 }
 
 function marketLimits() { return state.snapshot?.market.price?.limits || []; }
-function currentSweep() { return Number(state.snapshot?.market.price?.for || state.snapshot?.launch.seed?.record?.for || 1); }
+function currentSweep() {
+  const price = state.snapshot?.market.price;
+  const announced = Number(price?.for);
+  if (Number.isSafeInteger(announced) && announced >= 1) return Math.min(announced, CONTEST.lockSweep);
+  const completed = Number(price?.n);
+  if (Number.isSafeInteger(completed) && completed >= 0) return Math.min(completed + 1, CONTEST.lockSweep);
+  const initial = Number(state.snapshot?.launch.seed?.record?.for);
+  return Number.isSafeInteger(initial) && initial >= 1 ? Math.min(initial, CONTEST.lockSweep) : 1;
+}
 
 function applyLanguage() {
   document.documentElement.lang = state.language;
@@ -372,7 +380,7 @@ function renderMetrics() {
   const price = market.price;
   const ref = price?.ref?.px || price?.price || price?.applied;
   const limits = price?.limits || [];
-  $("#sweepNumber").textContent = price?.for || "-";
+  $("#sweepNumber").textContent = price ? currentSweep() : "-";
   $("#referencePrice").textContent = ref ? `$${formatNumber(ref)}` : "-";
   $("#priceAge").textContent = relativeTime(market.priceTs);
   $("#priceLimits").textContent = limits.length === 2 ? `${limits[0]} – ${limits[1]}` : "-";

@@ -7,6 +7,7 @@ const {
   compactTerms,
   isWithinLimits,
   makerPayload,
+  nextSweepNumber,
   offerRecord,
   ownerRecord,
   takerPayload,
@@ -118,4 +119,10 @@ test("limit helper is inclusive", () => {
   assert.equal(isWithinLimits("95.00", ["95.00", "105.00"]), true);
   assert.equal(isWithinLimits("105.00", ["95.00", "105.00"]), true);
   assert.equal(isWithinLimits("105.01", ["95.00", "105.00"]), false);
+});
+
+test("next sweep accepts both live referee price record shapes", () => {
+  assert.equal(nextSweepNumber({ for: 348 }, { for: 1 }), 348);
+  assert.equal(nextSweepNumber({ n: 347 }, { for: 1 }), 348);
+  assert.equal(nextSweepNumber(null, { for: 1 }), 1);
 });

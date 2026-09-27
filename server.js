@@ -9,11 +9,13 @@ const {
   ROOMS,
   SIG_RE,
   isWithinLimits,
+  nextSweepNumber,
   parseRecord,
 } = require("./lib/protocol");
 const { verifyOffer, verifyOuter, verifyTrade } = require("./lib/verify");
 const { buildIdentityLedger } = require("./lib/ledger");
 const { parseVenueJson } = require("./lib/venue-json");
+const { createRoomScheduler } = require("./lib/discovery");
 const {
   createHistory,
   ingestOfficialMessages,
@@ -33,7 +35,15 @@ const snapshotCache = { expiresAt: 0, promise: null, value: null };
 const history = createHistory();
 let historySeed = null;
 const MAX_DISCOVERY_ROOMS = 64;
-const discoveryTailCache = { expiresAt: 0, key: "", value: [] };
+const DISCOVERY_ROOMS_PER_REFRESH = 10;
+const DISCOVERY_CACHE_MS = 15_000;
+const SNAPSHOT_CACHE_MS = 10_000;
+const OWNER_CACHE_MS = 5 * 60_000;
+const coreParticipantRooms = [ROOMS.trading, ROOMS.offers];
+const discoveryScheduler = createRoomScheduler(coreParticipantRooms, DISCOVERY_ROOMS_PER_REFRESH);
+const discoveryTailCache = { expiresAt: 0, rooms: [], value: [] };
+const participantSeededRooms = new Set();
+const ownerCache = new Map();
 
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
@@ -126,18 +136,22 @@ async function readRoomsSafely(rooms, reader, concurrency = 6) {
 }
 
 async function readDiscoveryTails() {
-  const rooms = discoveryRoomNames();
-  const key = rooms.join("\n");
-  if (discoveryTailCache.expiresAt > Date.now() && discoveryTailCache.key === key) {
+  if (discoveryTailCache.expiresAt > Date.now()) {
     return discoveryTailCache.value;
   }
+  const rooms = discoveryScheduler.next(discoveryRoomNames());
   const value = await readRoomsSafely(rooms, async (room) => {
+    if (!participantSeededRooms.has(room)) {
+      const messages = await readRoomExport(room, true);
+      participantSeededRooms.add(room);
+      return messages;
+    }
     const data = await readRoom(room, true);
     return Array.isArray(data.messages) ? data.messages : [];
   });
-  discoveryTailCache.key = key;
+  discoveryTailCache.rooms = rooms;
   discoveryTailCache.value = value;
-  discoveryTailCache.expiresAt = Date.now() + 15_000;
+  discoveryTailCache.expiresAt = Date.now() + DISCOVERY_CACHE_MS;
   return value;
 }
 
@@ -150,8 +164,11 @@ async function seedRetainedHistory() {
       ]);
       ingestOfficialMessages(history, ROOMS.price, price);
       ingestOfficialMessages(history, ROOMS.flow, flow);
-      const roomExports = await readRoomsSafely(discoveryRoomNames(), (room) => readRoomExport(room, true));
-      for (const { room, messages } of roomExports) ingestParticipantMessages(history, room, messages);
+      const roomExports = await readRoomsSafely(coreParticipantRooms, (room) => readRoomExport(room, true));
+      for (const { room, messages } of roomExports) {
+        participantSeededRooms.add(room);
+        ingestParticipantMessages(history, room, messages);
+      }
     })();
     historySeed = attempt;
     attempt.catch(() => {
@@ -162,10 +179,18 @@ async function seedRetainedHistory() {
 }
 
 async function readOwner(room) {
-  const response = await fetchWithTimeout(`${TECHNOCORE}/kv/room-owners/${encodeURIComponent(room)}`);
-  const text = await response.text();
-  if (!response.ok) return "";
-  return text.split("\n").map((line) => line.trim()).find((line) => DID_RE.test(line)) || "";
+  const cached = ownerCache.get(room);
+  if (cached?.expiresAt > Date.now()) return cached.value;
+  try {
+    const response = await fetchWithTimeout(`${TECHNOCORE}/kv/room-owners/${encodeURIComponent(room)}`);
+    const text = await response.text();
+    if (!response.ok) throw new Error(`Technocore owner lookup returned ${response.status}.`);
+    const value = text.split("\n").map((line) => line.trim()).find((line) => DID_RE.test(line)) || "";
+    if (value) ownerCache.set(room, { value, expiresAt: Date.now() + OWNER_CACHE_MS });
+    return value || cached?.value || "";
+  } catch {
+    return cached?.value || "";
+  }
 }
 
 function lastRecord(messages, type) {
@@ -204,7 +229,7 @@ async function buildSnapshot() {
   const allDiscoveryRooms = new Set([ROOMS.trading, ROOMS.offers, ...flowStatus.registeredRooms]);
   const tradedIds = new Set(history.trades.keys());
   const limits = priceMessage?.record?.limits || seedMessage?.record?.limits || [];
-  const currentSweep = Number(priceMessage?.record?.for || seedMessage?.record?.for || 1);
+  const currentSweep = nextSweepNumber(priceMessage?.record, seedMessage?.record);
   const activeOffers = sortedValues(history.offers, true).filter(({ record }) => (
     !tradedIds.has(record.terms.id)
     && record.terms.until >= currentSweep
@@ -245,6 +270,7 @@ async function buildSnapshot() {
       offerRoom: ROOMS.offers,
       offerRoomRegistered: flowStatus.registeredRooms.has(ROOMS.offers),
       discoveryRooms,
+      scannedDiscoveryRooms: discoveryTailCache.rooms,
       discoveryRoomLimit: MAX_DISCOVERY_ROOMS,
       discoveryRoomsOmitted: Math.max(0, allDiscoveryRooms.size - discoveryRooms.length),
       omittedTradeResults: flowStatus.omittedSettled + flowStatus.omittedVoid,
@@ -258,7 +284,7 @@ async function getSnapshot(force = false) {
     if (!snapshotCache.promise) {
       snapshotCache.promise = buildSnapshot().then((value) => {
         snapshotCache.value = value;
-        snapshotCache.expiresAt = Date.now() + 4_000;
+        snapshotCache.expiresAt = Date.now() + SNAPSHOT_CACHE_MS;
         return value;
       }).finally(() => { snapshotCache.promise = null; });
     }
